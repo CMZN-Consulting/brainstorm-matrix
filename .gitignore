@@ -1,0 +1,12 @@
+storms/
+inbox/
+comms/
+scratch/
+*.env
+*.env.*
+*.pem
+*.key
+*.log
+.claude/settings.local.json
+.claude/memory/
+.obsidian/
