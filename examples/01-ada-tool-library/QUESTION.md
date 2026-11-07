@@ -45,4 +45,4 @@ The facts of the ground are the committee's own counts of last term. The committ
 
 ## Size
 
-Spark. A narrow question, a two-way door (paper stays possible), and two analysts are enough for breadth.
+Spark. A narrow question, a two-way door (paper stays possible), and two seats, one from each of rows 0 and 1, are enough for breadth.

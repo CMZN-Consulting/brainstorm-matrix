@@ -104,22 +104,22 @@ Weather: ONE LINE.
 
 **The shape.** DESIGN: CARDS, LEDGER, OPTIONS, TOURNAMENT · CENSUS: ROWS AND A LEDGER, NO CARDS · REVIEW: HOLDS H1 TO HN, EACH WITH A SEVERITY AND THE CHECK THAT CLEARS IT · RESEARCH: ONE MEASUREMENT, ITS NULL, THRESHOLD AND WINDOW WRITTEN BEFORE THE DATA · DRAFT: THE ARTIFACT IN A FILE BESIDE THE SHEET, A SOURCES AND DECISIONS TABLE, AT MOST FOUR INTERFACE CARDS AND THE WILD CARD. The stopping rule that follows from it.
 
-**Your lens, your question, your files.**
+**Your seat, your lens, your question, your files.**
 
-| Analyst | Lens | Your question | Your files | Procedure |
-| ------- | ---- | ------------- | ---------- | --------- |
-| 1       | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
-| 2       | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
-| 3       | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
-| 4       | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
+| Seat | Row · effort | Lens | Your question | Your files | Procedure |
+| ---- | ------------ | ---- | ------------- | ---------- | --------- |
+| L0   | 0 · xhigh    | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
+| R0   | 0 · xhigh    | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
+| L1   | 1 · high     | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
+| R1   | 1 · high     | LENS | ONE QUESTION  | NAMED SET  | THE CHECK |
 
-THE DEALT LENS DESCRIPTIONS FROM lenses.md, WHOLE, AND ONE TABLE ROW PER ANALYST IN THE ROUND.
+THE DEALT LENS DESCRIPTIONS FROM lenses.md, WHOLE, AND ONE TABLE ROW PER SEAT IN THE ROUND. Row 2 checks this round once it is sealed, under its own brief, `check.md`.
 
 **Look for.** THE DEFECT CLASSES, EACH WITH THE CHECK THAT FINDS IT.
 
 **Done when.** WHAT A COMPLETE ANSWER CONTAINS. Every card passes one triage line first: does it change THE DECISION THIS STORM FEEDS (for a storm that feeds a release, that release)? A card that does not becomes a doubt or is not written. Your Coverage section equals your file set, file for file. A doubt is welcome even when it proves wrong: raise it with your confidence and its `path:line`.
 
-**Deliver.** `storms/NN-CODENAME-SLUG/r1/analyst-N.md`: five to seven cards and a wild card, each finding at its `path:line`; facts found; assumptions; Doubts; Grounds; Coverage, with Not read. Write "none" rather than leave out a section. An artifact past 20 lines or a table past 15 rows goes beside the sheet as `r1/analyst-N-NAME.EXT`. The caps, the checks and the routes are the analyst skill's § Max effort and the thread: 24 KB a sheet with its Coverage, 14 non-blank lines and 1.8 KB a card, the sheet on disk with its Coverage skeleton before the first card. Read the pinned commits of GROUND.md. Box: 45 TO 60 MINUTES, ending at HH:MMZ; at its end, seal.
+**Deliver.** `storms/NN-CODENAME-SLUG/r1/analyst-SEAT.md`: five to seven cards and a wild card, each finding at its `path:line`; facts found; assumptions; Doubts; Grounds; Coverage, with Not read. Write "none" rather than leave out a section. An artifact past 20 lines or a table past 15 rows goes beside the sheet as `r1/analyst-SEAT-NAME.EXT`. The caps, the checks and the routes are the analyst skill's § Max effort and the thread: 24 KB a sheet with its Coverage, 14 non-blank lines and 1.8 KB a card, the sheet on disk with its Coverage skeleton before the first card. Read the pinned commits of GROUND.md. Box: 45 TO 60 MINUTES, ending at HH:MMZ; at its end, seal.
 
 **This round.** Alone: open no other sheet of r1. Challenges to settled rulings: ALLOWED, AT MOST ONE, OR NOT INVITED. The allowlist, which is the law for this round: THE COMMANDS; ONE FALSIFIER SCRIPT OR NONE; HELPERS AND THEIR NUMBER. ANYTHING SPECIAL.
 ```
@@ -131,19 +131,53 @@ THE DEALT LENS DESCRIPTIONS FROM lenses.md, WHOLE, AND ONE TABLE ROW PER ANALYST
 
 Weather: ONE LINE.
 
-**Your hand.** Read your hand and nothing else of r1.
+**Your hand.** Read your hand and nothing else of r1. Each hand comes from the other row.
 
-| Analyst | Hand              |
-| ------- | ----------------- |
-| 1       | `r1/analyst-2.md` |
-| 2       | `r1/analyst-3.md` |
-| 3       | `r1/analyst-4.md` |
-| 4       | `r1/analyst-1.md` |
+| Seat | Hand               |
+| ---- | ------------------ |
+| L0   | `r1/analyst-L1.md` |
+| R0   | `r1/analyst-R1.md` |
+| L1   | `r1/analyst-R0.md` |
+| R1   | `r1/analyst-L0.md` |
 
-**Deliver.** `storms/NN-CODENAME-SLUG/r2/analyst-N.md`: steelman the two strongest cards in your hand; graft two or three hybrids with your own r1 cards; write the pre-mortem of the card most likely to win; end with one question nobody has asked.
+**Deliver.** `storms/NN-CODENAME-SLUG/r2/analyst-SEAT.md`: steelman the two strongest cards in your hand; graft two or three hybrids with your own r1 cards; write the pre-mortem of the card most likely to win; end with one question nobody has asked.
 ```
 
 For a cluster each, the hand column names the cards of the theme instead of a sheet.
+
+## rK/check.md — row 2's check
+
+Written when round K is sealed, and dispatched to row 2 while the next step runs.
+
+```markdown
+---
+kind: brief
+storm: NN-CODENAME-SLUG
+round: rK
+status: open
+date: YYYY-MM-DD
+author: visionary
+---
+
+# Storm CODENAME · the check of rK
+
+Weather: ONE LINE.
+
+**What you check.** The sealed sheets of rK: THE SHEETS BY NAME, WITH r2/visionary.md IN r2 AND THE DUEL TABLES IN r3. Open these and no other sheet. Read the commits GROUND.md pins, with `git show SHA:PATH`.
+
+| Seat | Row · effort | Lens        | Your items                                                                          |
+| ---- | ------------ | ----------- | ----------------------------------------------------------------------------------- |
+| L2   | 2 · medium   | The Notary  | every `path:line` a card, a fact or a doubt cites; every card that restates another |
+| R2   | 2 · medium   | The Auditor | every cap; every number a sheet states; every script beside a sheet, re-run         |
+
+THE TWO LENS DESCRIPTIONS FROM lenses.md, WHOLE.
+
+**Done when.** Every item of your column has a row in your ledger beside the sheet, `rK/analyst-SEAT-checks.tsv`: the card, the item, and holds, fails or unrun. Every failure is a finding in your sheet, with what the sheet states and what the source shows. A doubt is welcome even when it proves wrong: raise it with your confidence and its `path:line`.
+
+**Deliver.** `storms/NN-CODENAME-SLUG/rK/analyst-SEAT.md`, in the check shape of the analyst skill: at most 12 KB, a finding at most six lines, then Unrun, Doubts, Grounds and Coverage. Box: 20 TO 30 MINUTES, ending at HH:MMZ; at its end, seal.
+
+**This check.** The allowlist, which is the law for this check: THE COMMANDS, WITH THE SKILL'S OWN STEPS (THE SCRATCHPAD, THE CLOCK, LISTING A DIRECTORY); THE SCRIPTS BESIDE THE SHEETS, EACH READ WHOLE FIRST; HELPERS AND THEIR NUMBER, OR NONE.
+```
 
 ## r3/brief.md — the tournament
 
@@ -165,32 +199,34 @@ Weather: ONE LINE.
 
 THE DUEL TABLE FOR THIS NUMBER OF OPTIONS.
 
-**Deliver.** `storms/NN-CODENAME-SLUG/r3/analyst-N.md`: per duel the winner, the margin (slight, clear, decisive), the deciding criterion, and what would flip it; then your ranking of every option, the first thing you would measure, and the options your own cards built.
+**Deliver.** `storms/NN-CODENAME-SLUG/r3/analyst-SEAT.md`: per duel the winner, the margin (slight, clear, decisive), the deciding criterion, and what would flip it; then your ranking of every option, the first thing you would measure, and the options your own cards built.
 ```
 
 ### Duel tables
 
-**Two options.** Everyone judges O1 v O2. Analysts 1 and 3 read O1 first; Analysts 2 and 4 read O2 first.
+Rows 0 and 1 judge. Every pair is judged in both orders, with a seat of each row on it, and every seat carries the same load.
 
-**Three options.** Everyone judges all three pairs. Analysts 1 and 3: O1 v O2 · O1 v O3 · O2 v O3. Analysts 2 and 4: O2 v O1 · O3 v O1 · O3 v O2.
+**Two options.** All four seats judge O1 v O2. L0 and L1 read O1 first; R0 and R1 read O2 first.
 
-**Four options.** Three duels each; every pair is judged by a different pair of analysts, and every option is read first three times and second three times.
+**Three options.** All four seats judge all three pairs, in a cycle that has each seat read every option first once. L0 and L1: O1 v O2 · O2 v O3 · O3 v O1. R0 and R1: O2 v O1 · O3 v O2 · O1 v O3.
 
-| Analyst | Duels, in this order        |
-| ------- | --------------------------- |
-| 1       | O1 v O2 · O3 v O2 · O2 v O4 |
-| 2       | O2 v O1 · O1 v O4 · O3 v O4 |
-| 3       | O1 v O3 · O4 v O1 · O4 v O2 |
-| 4       | O3 v O1 · O2 v O3 · O4 v O3 |
+**Four options.** Three duels each; every pair is judged by one seat of row 0 and one of row 1, in opposite orders, and every option is read first three times and second three times. The old table gave every pair its own pair of judges; with a judge from each row on every pair, four pairs of judges serve six pairs of options, so some pairs share their judges.
 
-**Five options.** Five duels each; every option is read first four times and second four times.
+| Seat | Duels, in this order        |
+| ---- | --------------------------- |
+| L0   | O1 v O2 · O4 v O3 · O3 v O1 |
+| R0   | O2 v O3 · O1 v O4 · O4 v O2 |
+| L1   | O4 v O1 · O3 v O2 · O2 v O1 |
+| R1   | O1 v O3 · O2 v O4 · O3 v O4 |
 
-| Analyst | Duels, in this order                            |
-| ------- | ----------------------------------------------- |
-| 1       | O1 v O2 · O4 v O1 · O2 v O3 · O5 v O2 · O3 v O5 |
-| 2       | O2 v O1 · O5 v O1 · O2 v O4 · O2 v O5 · O4 v O5 |
-| 3       | O1 v O3 · O1 v O4 · O4 v O2 · O4 v O3 · O5 v O3 |
-| 4       | O3 v O1 · O1 v O5 · O3 v O2 · O3 v O4 · O5 v O4 |
+**Five options.** Five duels each; every pair is judged by one seat of row 0 and one of row 1, in opposite orders, and every seat reads every option first once and second once.
+
+| Seat | Duels, in this order                            |
+| ---- | ----------------------------------------------- |
+| L0   | O1 v O2 · O3 v O4 · O5 v O1 · O2 v O3 · O4 v O5 |
+| R0   | O1 v O3 · O2 v O4 · O3 v O5 · O4 v O1 · O5 v O2 |
+| L1   | O5 v O3 · O1 v O4 · O2 v O5 · O3 v O1 · O4 v O2 |
+| R1   | O4 v O3 · O1 v O5 · O3 v O2 · O5 v O4 · O2 v O1 |
 
 **The tally.** Per option, wins minus losses over every judgment (a Copeland score). Ties are broken by margins, slight 1, clear 2, decisive 3, won minus lost. A split is a pair whose judges did not agree; the synthesis quotes both reasons.
 
@@ -199,12 +235,14 @@ THE DUEL TABLE FOR THIS NUMBER OF OPTIONS.
 ```markdown
 # Storm CODENAME · r4 · deep dive and red team
 
-| Analyst | Option | Role     |
-| ------- | ------ | -------- |
-| 1       | ON     | build    |
-| 2       | ON     | red team |
-| 3       | OM     | build    |
-| 4       | OM     | red team |
+| Seat | Option | Role     |
+| ---- | ------ | -------- |
+| L1   | ON     | build    |
+| L0   | ON     | red team |
+| R1   | OM     | build    |
+| R0   | OM     | red team |
+
+Row 2 checks the four sheets once they are sealed.
 
 **Build** to spec level: what it is in the voice of the specification the brief names; components and interfaces; state; failure modes and what the system does in each; the measurement that proves it (metric, null, threshold, window, written before the data); migration and rollback; cost; open questions.
 
@@ -224,12 +262,23 @@ author: visionary
 
 # Storm CODENAME — ledger
 
-| Card    | Title | By  | Fate           |
-| ------- | ----- | --- | -------------- |
-| R1-A1-1 | TITLE | A1  | alive: WHY     |
-| R1-A2-3 | TITLE | A2  | floor          |
-| R2-V-1  | TITLE | V   | folded into O2 |
-| R1-A3-4 | TITLE | A3  | graveyard      |
+| Card     | Title | By  | Fate           |
+| -------- | ----- | --- | -------------- |
+| R1-AL0-1 | TITLE | AL0 | alive: WHY     |
+| R1-AR0-3 | TITLE | AR0 | floor          |
+| R2-V-1   | TITLE | V   | folded into O2 |
+| R1-AL1-4 | TITLE | AL1 | graveyard      |
+
+## Checks
+
+Every finding of row 2, re-checked at its line or its number.
+
+| Finding  | By  | On       | Re-check                 |
+| -------- | --- | -------- | ------------------------ |
+| R1-AL2-1 | AL2 | R1-AL0-1 | confirmed: WHAT IT SHOWS |
+| R1-AR2-2 | AR2 | R1-AR1-W | not confirmed: WHY       |
+
+Misses: EACH DEFECT THE LEDGER FOUND THAT NO CHECK RAISED, WITH ITS CARD AND ITS LINE, OR "none".
 
 ## Options
 
@@ -238,7 +287,7 @@ author: visionary
 
 ## The graveyard
 
-- **R1-A3-4 · TITLE.** Here lies AN IDEA, killed by A REASON (A CITATION). It may rise again only with NEW EVIDENCE.
+- **R1-AL1-4 · TITLE.** Here lies AN IDEA, killed by A REASON (A CITATION). It may rise again only with NEW EVIDENCE.
 ```
 
 ## SYNTHESIS.md
@@ -296,7 +345,7 @@ The cards behind each option, and the key sources.
 
 ## Kudos
 
-Each analyst's best contribution, by name.
+Each seat's best contribution, by seat, row 2's checks included.
 
 ## The graveyard
 
@@ -315,6 +364,23 @@ The states this storm met, each filed in `GROUNDS.md` with its number, or "none"
 | Round | Minutes | Sheet bytes | Cards | Alive after the ledger |
 | ----- | ------- | ----------- | ----- | ---------------------- |
 | r1    |         |             |       |                        |
+
+Tokens, from the count of the seats' transcripts that the directing session supplies after the storm (`COST.md`): output tokens per seat and round, then the storm's totals. Filled when the count comes.
+
+| Seat | Effort | r1  | r2  | r3  | Output | Share | Input | Cache written | Cache read | Turns |
+| ---- | ------ | --- | --- | --- | ------ | ----- | ----- | ------------- | ---------- | ----- |
+| V    | max    |     |     |     |        |       |       |               |            |       |
+| L0   | xhigh  |     |     |     |        |       |       |               |            |       |
+| All  |        |     |     |     |        | 100%  |       |               |            |       |
+
+Survival per row, from the ledger: a card survives as alive, floor or folded; a finding survives when the re-check confirms it.
+
+| Row | Seats  | Cards | Survived | Alive | Findings | Confirmed | Misses |
+| --- | ------ | ----- | -------- | ----- | -------- | --------- | ------ |
+| V   | V      |       |          |       | —        | —         | —      |
+| 0   | L0, R0 |       |          |       | —        | —         | —      |
+| 1   | L1, R1 |       |          |       | —        | —         | —      |
+| 2   | L2, R2 | —     | —        | —     |          |           |        |
 ```
 
 ## RULING.md
@@ -360,8 +426,8 @@ Questions the matrix noticed that nobody asked, each with who noticed it and why
 
 ## Lens log
 
-| Storm | Analyst 1 | Analyst 2 | Analyst 3 | Analyst 4 |
-| ----- | --------- | --------- | --------- | --------- |
+| Storm | L0  | R0  | L1  | R1  | L2  | R2  |
+| ----- | --- | --- | --- | --- | --- | --- |
 
 ## Cost
 
@@ -369,4 +435,22 @@ The trend across storms, one row per round, from each synthesis's cost table.
 
 | Storm | Round | Minutes | Sheet bytes | Cards | Alive after the ledger | Synthesis bytes |
 | ----- | ----- | ------- | ----------- | ----- | ---------------------- | --------------- |
+
+### Tokens
+
+Output tokens per seat, one row per storm and round, from each storm's `COST.md`; the Visionary's share is its part of the storm's output.
+
+| Storm | Round | Turns | V   | L0  | R0  | L1  | R1  | L2  | R2  | All | V share | Input | Cache written | Cache read |
+| ----- | ----- | ----- | --- | --- | --- | --- | --- | --- | --- | --- | ------- | ----- | ------------- | ---------- |
+
+### Survival per row
+
+Running totals first, then one row per storm and row.
+
+| Storm | Row | Effort | Cards | Survived | Alive | Findings | Confirmed | Misses |
+| ----- | --- | ------ | ----- | -------- | ----- | -------- | --------- | ------ |
+| All   | V   | max    |       |          |       | —        | —         | —      |
+| All   | 0   | xhigh  |       |          |       | —        | —         | —      |
+| All   | 1   | high   |       |          |       | —        | —         | —      |
+| All   | 2   | medium | —     | —        | —     |          |           |        |
 ```
