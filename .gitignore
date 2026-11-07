@@ -1,0 +1,8 @@
+/storms
+/inbox
+/MATRIX.md
+*.pem
+*.key
+*.log
+.claude/settings.local.json
+.claude/memory/
