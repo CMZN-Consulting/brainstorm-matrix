@@ -8,6 +8,8 @@ asked-by: desk-lead
 size: spark
 ---
 
+A hand-written illustration of a storm's files, not the record of a storm: no room ran it, and none of its figures was measured.
+
 # Storm Ada — how should a tool library take reservations?
 
 This storm is invented for the repository's example. Nothing in it is real: the library, its members, its numbers and its committee do not exist.

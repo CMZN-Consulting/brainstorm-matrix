@@ -82,11 +82,7 @@ none.
 
 ## Cost
 
-| Round | Minutes | Sheet bytes                          | Cards | Alive after the ledger |
-| ----- | ------- | ------------------------------------ | ----- | ---------------------- |
-| r1    | 44      | 14,305, two sheets (7,155 and 7,150) | 12    | 4 of 12                |
-
-Tokens: not counted in this example. Survival per row, from the ledger; row 2 did not check this example's round.
+No minutes and no tokens: this example was written by hand, and no room ran it. Survival per row, from the ledger; row 2 did not check this example's round.
 
 | Row | Seats | Cards | Survived | Alive  | Findings | Confirmed | Misses |
 | --- | ----- | ----- | -------- | ------ | -------- | --------- | ------ |

@@ -2,6 +2,42 @@
 
 Shapes for every file the Visionary writes in a storm. Placeholders are in capitals. The analyst's sheet shapes live in the analyst skill, `.claude/skills/analyst/SKILL.md`.
 
+## The roll call: storms/00-roll-call/r1/brief.md
+
+Storm 00 is made by hand before the first storm, because `matrix.sh new` numbers from 01; a seat that joins a running room gets a roll call of its own, `storms/00-roll-call-SLUG/`. It has no QUESTION, GROUND or ledger. Its sheets go in `r1/`, so that `matrix.sh status` and `wait` read them.
+
+```markdown
+---
+kind: brief
+storm: 00-roll-call
+round: r1
+status: open
+date: YYYY-MM-DD
+author: visionary
+---
+
+# Roll call
+
+Weather: ONE LINE.
+
+**What this is for.** The room learns that each seat is here, has its skill loaded, and has read the same files.
+
+**Boot.** Load your skill, `/analyst`, if it is not in your context; then the overlay, THE OVERLAY'S PATH OR "none"; then read these files whole: `BRIEFING.md`, `GROUNDS.md`, THE FILES EVERY STORM WILL NEED.
+
+| Seat | Row · effort | Your sheet                             |
+| ---- | ------------ | -------------------------------------- |
+| L0   | 0 · xhigh    | `storms/00-roll-call/r1/analyst-L0.md` |
+| R0   | 0 · xhigh    | `storms/00-roll-call/r1/analyst-R0.md` |
+| L1   | 1 · high     | `storms/00-roll-call/r1/analyst-L1.md` |
+| R1   | 1 · high     | `storms/00-roll-call/r1/analyst-R1.md` |
+| L2   | 2 · medium   | `storms/00-roll-call/r1/analyst-L2.md` |
+| R2   | 2 · medium   | `storms/00-roll-call/r1/analyst-R2.md` |
+
+**Deliver.** A short sheet in the frontmatter of the analyst skill's sheet, with no cards: one paragraph naming your seat, your row and your effort as your session name and this brief give them; a map of what you read, one line a file; then Doubts, Grounds and Coverage, with Not read. Write "none" rather than leave out a section. Box: THE BOX, ending at HH:MMZ; at its end, seal.
+
+**This round.** The allowlist: reading the files above, listing a directory, the clock, and writing your sheet. No helpers.
+```
+
 ## QUESTION.md
 
 ```markdown
