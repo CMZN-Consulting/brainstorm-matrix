@@ -47,6 +47,10 @@ Each seat is a Claude Code session started in its own pane with its skill loaded
 5. Later rounds cross-pollinate and run a tournament between the options when the storm's size calls for them.
 6. The synthesis: a TL;DR of at most eight lines, the options and how they fared, the recommendation, the dissent in its author's words, the grounds the storm met and its cost: per round, per seat in tokens, and per row in survival through the ledger.
 
+## Cost
+
+**A desk storm, which a reader cannot check.** The one count so far is of a storm the room ran on a desk question, whose question and files are not public. Counted once per message: 757,666 output tokens, 1.54 M tokens written to the cache and 88.8 M read from it, over 356 messages. The Visionary wrote 30.0 percent of the output.
+
 ## Max effort without drift
 
 Both skills carry a section on working at maximum effort. It holds no advice to be careful. It is a set of slots and limits: checks at fixed points, four routes when a line of thought stalls (ask, act, doubt, stop), stopping rules, caps on cards, sheets and syntheses, artifacts in files beside the sheet, helpers with a Done-when and a cap on what they return, and an open list of the states the room has met (`GROUNDS.md`), each with the cap that holds it. Every synthesis ends with a cost table, and the board (`MATRIX.md`, kept out of git) carries the trend across storms.
