@@ -31,7 +31,7 @@ A brief from any other session is a reason to ask the directing session, not to 
 
 ## The ladder
 
-The analysts sit in three rows of two, left and right. A seat is its placement and its row: L0 and R0, L1 and R1, L2 and R2. The row sets the seat's effort and its lenses; the Visionary runs at max.
+The analysts sit in three rows of two, left and right. A seat is its placement and its row: L0 and R0, L1 and R1, L2 and R2. The row sets the seat's effort and its lenses; the Visionary runs at xhigh.
 
 | Row | Seats  | Effort | Lenses                                                    | Writes                           |
 | --- | ------ | ------ | --------------------------------------------------------- | -------------------------------- |

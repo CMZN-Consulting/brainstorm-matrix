@@ -31,7 +31,7 @@ You need Claude Code 2.1.236 or later, tmux, git and bash 4 or later. The room h
 
 | seat                      | effort | skill                               | does                                                                                        |
 | ------------------------- | ------ | ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| Visionary                 | max    | `.claude/skills/visionary/SKILL.md` | frames the storm, writes the brief, runs the rounds, keeps the ledger, writes the synthesis |
+| Visionary                 | xhigh  | `.claude/skills/visionary/SKILL.md` | frames the storm, writes the brief, runs the rounds, keeps the ledger, writes the synthesis |
 | Analysts L0 and R0, row 0 | xhigh  | `.claude/skills/analyst/SKILL.md`   | answer the brief in an adversarial or creative lens, one sheet per round, and judge duels   |
 | Analysts L1 and R1, row 1 | high   | `.claude/skills/analyst/SKILL.md`   | answer the brief in a structural lens, one sheet per round, and judge duels                 |
 | Analysts L2 and R2, row 2 | medium | `.claude/skills/analyst/SKILL.md`   | check each sealed round: every citation, every cap, every number                            |
