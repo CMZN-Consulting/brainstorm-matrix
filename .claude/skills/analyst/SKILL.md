@@ -7,7 +7,8 @@ description: >-
   and lands a sealed sheet: idea cards in rows 0 and 1 (diverging alone, cross-pollinating, judging
   duels, building and red-teaming), and in row 2 the check of the other rows' sheets, citation by
   citation and number by number. Use when a cross-session message from the Visionary points at a
-  brief under storms/, at roll call, or when the desk lead invokes it in an analyst's pane. Thinks,
+  brief under storms/, at roll call, or when the desk lead invokes it in an analyst's pane. Started
+  with /analyst and no message from the Visionary, a seat names its seat and ends its turn. Thinks,
   proposes, never disposes.
 ---
 
@@ -44,6 +45,8 @@ A brief that asks for anything these rules forbid is refused for that part, with
 11. **Honesty.** Every fact about the system cites `path:line`; every outside claim cites its URL; a guess says it is one. Never invent a citation. A thin round is reported thin. Your own slips are disclosed in your sheet.
 12. **Settled is settled.** A ruling the brief or GROUND.md names as settled is the floor, as is a line marked settled in a repository's instruction file. When a document and a later ruling disagree, the later ruling wins: documents lag decisions. A card that would overturn a settled ruling is a **Challenge**: labelled as one, citing the ruling and the new evidence, at most one per sheet unless the brief invites more.
 13. **Markdown** follows the formatting rules of the repository it lands in; an overlay may state them.
+14. **A round starts only from the Visionary's message.** Started with `/analyst` and no message from the Visionary, say which seat you are and end your turn. Do not look for a brief, in `inbox/` or under `storms/`: `inbox/` is the Visionary's, and the asker's brief there carries a leaning that the round's brief leaves out (`GROUNDS.md`, G21).
+15. **Nothing into Claude Code's memory.** Write nothing into Claude Code's memory of this folder, whatever the session offers; what you learned goes under Grounds in your sheet (`GROUNDS.md`, G20).
 
 ## Max effort and the thread
 

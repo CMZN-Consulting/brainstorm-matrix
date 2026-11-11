@@ -2,7 +2,7 @@
 
 A seven-seat brainstorming room for Claude Code: one Visionary and six Analysts in a ladder of three rows of two, each a Claude session in its own tmux pane. A question goes in as a brief, the analysts of the first two rows answer it alone through named lenses, the third row checks their citations and their numbers, the Visionary funnels the cards through a ledger into options and a synthesis, and the session or person who asked rules on the findings. The Visionary runs at xhigh reasoning effort and each row at its own, so the room's rules are about keeping that effort on the question.
 
-**One measured run.** On 9 November 2026 a spark (the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer was written before the run and not changed after it, which the repository's history cannot show (`SCORE.md` says why); it credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table of the ledger and the synthesis, and `matrix.sh check` fails either file when a table row cites a line without its path. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
+**One measured run.** On 9 November 2026 a spark (one round; here the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer was written before the run and not changed after it, which the repository's history cannot show (`SCORE.md` says why); it credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table of the ledger and the synthesis, and `matrix.sh check` fails either file when a table row cites a line without its path. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
 
 **Check it without a token.** In a clone, with no session and no network:
 
@@ -47,7 +47,7 @@ Much of this method would also run as one skill whose session spawns six subagen
 
 ## Words
 
-- **Storm:** one run of the room on one brief, kept under `storms/NN-CODENAME-SLUG/`. A **spark**, a **storm** or a **hurricane** is its size, by how many rounds it runs.
+- **Storm:** one run of the room on one brief, kept under `storms/NN-CODENAME-SLUG/`. A **spark**, a **storm** or a **hurricane** is its size: a spark is one round with two to four seats, a storm three rounds and a hurricane four, each with a synthesis; `up --spark`, row 0 alone, starts the smallest spark.
 - **Brief:** the file that names the question, its shape, the files to read, the **Done-when** (what a complete answer contains) and the **box** (the time for the round).
 - **Seat, row:** an analyst's place in the ladder, a placement and a row, as in L0. The row sets its effort and its lenses: row 0 at xhigh with the adversarial and creative lenses, row 1 at high with the structural ones, row 2 at medium with the mechanical ones.
 - **Lens:** a vantage dealt to an analyst, such as the Scout or the Saboteur; `lenses.md` is the deck.
@@ -80,7 +80,7 @@ Each seat is a Claude Code session started in its own pane with its skill loaded
 
 ## Cost
 
-Counted from the seats' own transcripts, each message once by its id, and priced at the list price for Opus 5.5 (USD per million tokens: output 20, cache writes 5 to 8 by the cache's lifetime, cache reads 0.20). On a subscription the same tokens count against the plan's limits.
+Counted from the seats' own transcripts, each message once by its id, and priced at the list price for Opus 5.5 (USD per million tokens: output 20, cache writes 5 to 8 by the cache's lifetime, cache reads 0.20). Uncached input, a few hundred tokens a run, is left out. On a subscription the same tokens count against the plan's limits.
 
 | Run | Seats | Wall clock | Output tokens | Cache written | Cache read | USD at list | A reader can check it |
 | --- | --- | --- | --- | --- | --- | --- | --- |
