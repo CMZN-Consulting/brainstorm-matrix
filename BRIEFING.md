@@ -28,7 +28,7 @@ The numbered points below are the one home of what they define: both skills poin
    Coverage is file for file: the sheet's coverage ledger must equal the file set. "Done" means it does, not that enough was found.
 
 3. **One shape for every sheet.** Every round's sheet has the rows or cards, each finding with its `path:line`, then **Doubts**, then **Not read**. The last two are mandatory, and "none" is written out (the sheet template of the analyst skill adds Grounds and puts Not read inside Coverage). A hole then shows instead of hiding.
-4. **The cross-check is mine.** Two cases trigger it: two analysts disagree, or a sheet states a fact that the ground does not carry. I first open the source myself. If that cannot settle it, I run a second bounded round, `rKb`, on that point alone. Its brief quotes both claims and names the lines to read.
+4. **The cross-check is mine.** Two cases trigger it: two analysts disagree, or a sheet states a fact that the ground does not carry. I first open the source myself. If that cannot settle it, I run a second bounded round, `rKb` (`r1b` after `r1`, `r2b` after `r2`), on that point alone. Its brief quotes both claims and names the lines to read.
 5. **A claim without `path:line` is a lead, not a finding.** No load-bearing claim enters a ledger or a synthesis until I have opened it at its line. The synthesis says which claims I verified; everything else stays labelled a lead.
 6. **No exhortations.** A brief never says "be thorough". It gives four things:
    - what the storm is for;

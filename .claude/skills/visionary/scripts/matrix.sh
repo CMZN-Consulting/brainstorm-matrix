@@ -19,6 +19,7 @@ CLI_MIN=2.1.236
 CLI_MIN_WHY='2.1.236 added notify_when_idle to cross-session SendMessage, which the Visionary subscribes with (CHANGELOG.md of anthropics/claude-code, section 2.1.236)'
 TRUST_TEXT='trust this folder'
 TITLE_SWITCH=CLAUDE_CODE_DISABLE_TERMINAL_TITLE
+EFFORT_SWITCH=CLAUDE_CODE_EFFORT_LEVEL
 CLAUDE_BIN=""
 CLI_VER=""
 
@@ -34,6 +35,7 @@ Every failure prints its reason and exits non-zero.
 
   doctor [-p PREFIX]               one line per check, non-zero exit when one fails: tmux, bash 4,
                                    the claude CLI at 2.1.236 or later, pane titles not switched off,
+                                   CLAUDE_CODE_EFFORT_LEVEL unset (a "step" line names it when set),
                                    whether Claude Code trusts this folder (read, never written;
                                    a "step" line says what to do), the matrix's pane titles
                                    unique, the cross-session socket directory while sessions run,
@@ -498,6 +500,20 @@ title_switch() {
   return 1
 }
 
+effort_switch() {
+  local g
+  if [ -n "${!EFFORT_SWITCH:-}" ]; then
+    printf '%s\037%s' "${!EFFORT_SWITCH}" "this shell"
+    return 0
+  fi
+  g="$(tmux show-environment -g "$EFFORT_SWITCH" 2>/dev/null || true)"
+  if [ -n "$g" ] && [ "${g#-}" = "$g" ]; then
+    printf '%s\037%s' "${g#*=}" "tmux's global environment"
+    return 0
+  fi
+  return 1
+}
+
 trust_state() {
   local cfg found=""
   for cfg in "${CLAUDE_CONFIG_DIR:+$CLAUDE_CONFIG_DIR/.claude.json}" "$HOME/.claude.json"; do
@@ -525,7 +541,7 @@ while True:
 }
 
 doctor() {
-  local dir t where rc by mem entries
+  local dir t where rc by mem entries level
   FAILS=0
   [ "$#" -eq 0 ] || die "doctor takes nothing but -p PREFIX"
   if ! command -v tmux >/dev/null 2>&1; then
@@ -549,6 +565,11 @@ doctor() {
     report FAIL "$TITLE_SWITCH is set in $where, so Claude Code sets no pane title and matrix.sh finds no seat"
   else
     report ok "$TITLE_SWITCH is not set, so Claude Code titles each pane with its session name"
+  fi
+  if level="$(effort_switch)"; then
+    report step "$EFFORT_SWITCH is ${level%%"$CHECK_SEP"*} in ${level#*"$CHECK_SEP"}, and it overrides --effort: every seat would run at that level whatever its row; unset it there for the ladder"
+  else
+    report ok "$EFFORT_SWITCH is not set, so each seat runs at its row's effort"
   fi
   rc=0
   by="$(trust_state)" || rc=$?

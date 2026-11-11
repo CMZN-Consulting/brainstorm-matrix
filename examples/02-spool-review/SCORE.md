@@ -1,6 +1,6 @@
 # The score
 
-`python3 -I score.py`, run in this directory after the storm landed on 2026-11-09, reads `LEDGER.md` and `SYNTHESIS.md` against `ANSWER-KEY.md`. The key stayed outside the room while it ran. The scorer was written before the run and was not changed after it. Its output, verbatim, is the measured figure:
+`python3 -I score.py`, run in this directory after the storm landed on 2026-11-09, reads `LEDGER.md` and `SYNTHESIS.md` against `ANSWER-KEY.md`. The key stayed outside the room while it ran. The scorer was written before the run and was not changed after it. The repository's history cannot show that order: the scorer and the key were kept outside the clone until the run had landed, and entered the repository together in the commit after it. Its output, verbatim, is the measured figure:
 
 ```text
 | Defect | Kind | Verdict | Named at |

@@ -2,18 +2,19 @@
 kind: cost
 storm: 01-ada-spool-review
 date: 2026-11-09
-author: operator
+author: directing-session
 ---
 
 # Storm Ada — cost
 
-Filled in by the operator after the storm landed, from the seats' own transcripts; the room wrote none of it. The synthesis's cost section points here for its tokens.
+Filled in by the directing session after the storm landed, from the seats' own transcripts; the room wrote none of it. The synthesis's cost section points here for its tokens.
 
 ## The run
 
 - A spark: the Visionary and the analysts L0 and R0, one round, with no row 1 and no row 2. Every seat ran `claude-opus-5-5` at xhigh effort under Claude Code 2.1.319, in permission mode auto, without web tools, MCP servers or the Chrome integration: `matrix.sh up --spark -p Clean --model claude-opus-5-5 --no-web --brief inbox/2026-11-09-spool-review.md`.
-- It ran on Linux from a fresh clone of this repository at `6ec3310`, in a folder trusted by hand before the run. No instruction file sat above the clone. The seats ran under the operator's user settings (permission rules, Remote Control at startup), with no hooks and no plugins.
+- It ran on Linux from a fresh clone of this repository at `6ec3310`, in a folder trusted by hand before the run. No instruction file sat above the clone. The seats ran under the desk lead's user settings (permission rules, Remote Control at startup), with no hooks and no plugins.
 - No seat made a web call or started a helper. Each seat took three turns.
+- The storm's files were moved unchanged from `storms/01-ada-spool-review/` into this directory after the run, and the brief the run started from, `inbox/2026-11-09-spool-review.md`, is kept here as `inbox-brief.md`, byte for byte as the Visionary's transcript shows it; `inbox/` and `storms/` are the room's working directories, which the repository ignores.
 
 ## Time, by the wall clock
 
@@ -46,7 +47,7 @@ Counting each line of a transcript instead of each message, an earlier method, g
 
 ## Price
 
-At the list price for Opus 5.5, in USD per million tokens (output 20; cache writes 5 to 8, by the cache's lifetime; cache reads 0.20), the whole run comes to 6.85 to 7.92 USD:
+At the list price for Opus 5.5, in USD per million tokens (output 20; cache writes 5 to 8, by the cache's lifetime; cache reads 0.20), the whole run comes to 6.85 to 7.92 USD; the rows below are rounded to the cent:
 
 | Tokens | Count | Price | USD |
 | --- | --- | --- | --- |

@@ -4,5 +4,7 @@
 *.pem
 *.key
 *.log
+.env
+.env.*
 .claude/settings.local.json
 .claude/memory/
