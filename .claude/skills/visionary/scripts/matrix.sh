@@ -61,7 +61,7 @@ Every failure prints its reason and exits non-zero.
                                    seat without web tools, MCP servers or the Chrome integration.
                                    On its own two windows only, up puts each pane's title on its
                                    top border in its seat's colour: the Visionary green, row 0 red,
-                                   row 1 magenta, row 2 blue; a tmux that lacks an option for it
+                                   row 1 purple, row 2 blue; a tmux that lacks an option for it
                                    leaves the titles as they are.
                                    When a pane asks something only a person can answer, up prints
                                    the step and waits MATRIX_UP_WAIT seconds (default 600); if it is
@@ -737,14 +737,14 @@ session_kept() {
   if tmux list-sessions >/dev/null 2>&1; then
     die "tmux ended the session $(quoted_session) as soon as up made it, and its server runs on: a hook or a setting of that server ends new sessions"
   fi
-  die "tmux ended the session $(quoted_session) as soon as up made it: this server stops when no client is attached (exit-unattached on); run up from a pane of a tmux client attached to it, or set exit-unattached off"
+  die "tmux ended the session $(quoted_session) as soon as up made it: this tmux server stops when no client is attached (exit-unattached on); start a tmux session of your own and run up from a pane of it, or set exit-unattached off in your tmux configuration"
 }
 
 seat_colour() {
   case "$1" in
     V) printf '%s' green ;;
     ?0) printf '%s' red ;;
-    ?1) printf '%s' magenta ;;
+    ?1) printf '%s' colour129 ;;
     *) printf '%s' blue ;;
   esac
 }

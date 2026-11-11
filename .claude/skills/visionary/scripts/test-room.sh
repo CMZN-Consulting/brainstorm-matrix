@@ -156,7 +156,7 @@ colours_hold() {
     case "$title" in
       *Visionary) want=green ;;
       *"(L0)" | *"(R0)") want=red ;;
-      *"(L1)" | *"(R1)") want=magenta ;;
+      *"(L1)" | *"(R1)") want=colour129 ;;
       *"(L2)" | *"(R2)") want=blue ;;
       *) return 1 ;;
     esac
@@ -195,7 +195,7 @@ fresh
 rc="$(run up -p "$SESSION")"
 holds "with no setting of the user's, up builds the room of seven" room_up
 holds "the Visionary runs on opus at xhigh, and the analysts on sonnet, rows 0, 1 and 2 at xhigh, high and medium" seats_run opus sonnet
-holds "each pane's title is on its top border in its seat's colour: the Visionary green, rows 0, 1 and 2 red, magenta and blue" colours_hold
+holds "each pane's title is on its top border in its seat's colour: the Visionary green, rows 0, 1 and 2 red, purple and blue" colours_hold
 holds "down stops it" down_stops_it
 
 fresh
@@ -205,9 +205,9 @@ holds "and puts all seven on MODEL, each at its own effort" seats_run some-model
 holds "down stops it" down_stops_it
 
 fresh
-rc="$(run up -p "$SESSION" --director "Senior Worker")"
+rc="$(run up -p "$SESSION" --director "My Session")"
 holds "--director NAME builds the room of seven" room_up
-holds "and the Visionary's first prompt names NAME as the directing session" first_prompt_is "/visionary The directing session is Senior Worker."
+holds "and the Visionary's first prompt names NAME as the directing session" first_prompt_is "/visionary The directing session is My Session."
 holds "down stops it" down_stops_it
 
 fresh
