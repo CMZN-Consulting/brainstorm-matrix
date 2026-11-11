@@ -14,6 +14,8 @@ LADDER=(L0 R0 L1 R1 L2 R2)
 SPARK=(L0 R0)
 ROW_EFFORT=(xhigh high medium)
 VISIONARY_EFFORT=xhigh
+VISIONARY_MODEL=opus
+ANALYST_MODEL=sonnet
 CHECK_ROW=2
 CLI_MIN=2.1.236
 CLI_MIN_WHY='2.1.236 added notify_when_idle to cross-session SendMessage, which the Visionary subscribes with (CHANGELOG.md of anthropics/claude-code, section 2.1.236)'
@@ -46,7 +48,9 @@ Every failure prints its reason and exits non-zero.
                                    a new detached tmux session named PREFIX (or matrix): window
                                    Visionary, window Analysts with the six seats in three rows of
                                    two (--spark: row 0 only); each pane starts claude named for its
-                                   seat, at its row's effort, in one permission mode (default auto),
+                                   seat, the Visionary on opus at xhigh and the analysts on sonnet,
+                                   row 0 at xhigh, row 1 at high and row 2 at medium (--model MODEL
+                                   puts all seven on MODEL), in one permission mode (default auto),
                                    with its skill as the first prompt; the analysts start first and
                                    the Visionary last, and --brief adds "The brief is at PATH." to
                                    the Visionary's first prompt; --no-web starts every seat
@@ -637,15 +641,20 @@ seat_command() {
   else
     argv=(env -u CLAUDE_CONFIG_DIR)
   fi
-  argv+=("$CLAUDE_BIN" -n "$1" --effort "$2" --permission-mode "$UP_MODE")
-  if [ -n "$UP_MODEL" ]; then
-    argv+=(--model "$UP_MODEL")
-  fi
+  argv+=("$CLAUDE_BIN" -n "$1" --model "$2" --effort "$3" --permission-mode "$UP_MODE")
   if [ "$UP_NOWEB" -eq 1 ]; then
     argv+=(--disallowedTools=WebSearch,WebFetch --strict-mcp-config --no-chrome)
   fi
-  argv+=("$3")
+  argv+=("$4")
   printf '%q ' "${argv[@]}"
+}
+
+seat_models() {
+  if [ -n "$UP_MODEL" ]; then
+    printf '%s' "every seat on $UP_MODEL"
+  else
+    printf '%s' "the Visionary on $VISIONARY_MODEL and the analysts on $ANALYST_MODEL"
+  fi
 }
 
 quoted_session() {
@@ -700,15 +709,17 @@ wait_ready() {
 }
 
 start_seat() {
-  local pane="$1" seat="$2" effort skill
+  local pane="$1" seat="$2" model effort skill
   if [ "$seat" = V ]; then
+    model="${UP_MODEL:-$VISIONARY_MODEL}"
     effort="$VISIONARY_EFFORT"
     skill="/visionary${UP_BRIEF:+ The brief is at $UP_BRIEF.}"
   else
+    model="${UP_MODEL:-$ANALYST_MODEL}"
     effort="${ROW_EFFORT[${seat:1}]}"
     skill=/analyst
   fi
-  tmux respawn-pane -k -t "$pane" "$(seat_command "$(seat_name "$PREFIX" "$seat")" "$effort" "$skill")" ||
+  tmux respawn-pane -k -t "$pane" "$(seat_command "$(seat_name "$PREFIX" "$seat")" "$model" "$effort" "$skill")" ||
     stop_room "tmux cannot start seat $seat in pane $pane"
 }
 
@@ -832,7 +843,7 @@ up() {
   fi
   trap - INT TERM HUP
   panes
-  printf '%s\n' "up: the room is up in tmux session $UP_SESSION ($CLAUDE_BIN $CLI_VER, mode $UP_MODE${UP_MODEL:+, model $UP_MODEL}); attach with: $(attach_hint)"
+  printf '%s\n' "up: the room is up in tmux session $UP_SESSION ($CLAUDE_BIN $CLI_VER, mode $UP_MODE, $(seat_models)); attach with: $(attach_hint)"
 }
 
 CHECK_FAILS=0

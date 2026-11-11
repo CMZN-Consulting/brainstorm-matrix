@@ -405,11 +405,11 @@ The states this storm met, each filed in `GROUNDS.md` with its number, or "none"
 
 Tokens, from the count of the seats' transcripts that the directing session supplies after the storm (`COST.md`): output tokens per seat and round, then the storm's totals. Filled when the count comes.
 
-| Seat | Effort | r1  | r2  | r3  | Output | Share | Input | Cache written | Cache read | Turns |
-| ---- | ------ | --- | --- | --- | ------ | ----- | ----- | ------------- | ---------- | ----- |
-| V    | xhigh  |     |     |     |        |       |       |               |            |       |
-| L0   | xhigh  |     |     |     |        |       |       |               |            |       |
-| All  |        |     |     |     |        | 100%  |       |               |            |       |
+| Seat | Model  | Effort | r1  | r2  | r3  | Output | Share | Input | Cache written | Cache read | Turns |
+| ---- | ------ | ------ | --- | --- | --- | ------ | ----- | ----- | ------------- | ---------- | ----- |
+| V    | opus   | xhigh  |     |     |     |        |       |       |               |            |       |
+| L0   | sonnet | xhigh  |     |     |     |        |       |       |               |            |       |
+| All  |        |        |     |     |     |        | 100%  |       |               |            |       |
 
 Survival per row, from the ledger: a card survives as alive, floor or folded; a finding survives when the re-check confirms it.
 
@@ -485,10 +485,10 @@ Output tokens per seat, one row per storm and round, from each storm's `COST.md`
 
 Running totals first, then one row per storm and row.
 
-| Storm | Row | Effort | Cards | Survived | Alive | Findings | Confirmed | Misses |
-| ----- | --- | ------ | ----- | -------- | ----- | -------- | --------- | ------ |
-| All   | V   | xhigh  |       |          |       | —        | —         | —      |
-| All   | 0   | xhigh  |       |          |       | —        | —         | —      |
-| All   | 1   | high   |       |          |       | —        | —         | —      |
-| All   | 2   | medium | —     | —        | —     |          |           |        |
+| Storm | Row | Model  | Effort | Cards | Survived | Alive | Findings | Confirmed | Misses |
+| ----- | --- | ------ | ------ | ----- | -------- | ----- | -------- | --------- | ------ |
+| All   | V   | opus   | xhigh  |       |          |       | —        | —         | —      |
+| All   | 0   | sonnet | xhigh  |       |          |       | —        | —         | —      |
+| All   | 1   | sonnet | high   |       |          |       | —        | —         | —      |
+| All   | 2   | sonnet | medium | —     | —        | —     |          |           |        |
 ```

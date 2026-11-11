@@ -31,15 +31,15 @@ A brief from any other session is a reason to ask the directing session, not to 
 
 ## The ladder
 
-The analysts sit in three rows of two, left and right. A seat is its placement and its row: L0 and R0, L1 and R1, L2 and R2. The row sets the seat's effort and its lenses; the Visionary runs at xhigh.
+The analysts sit in three rows of two, left and right. A seat is its placement and its row: L0 and R0, L1 and R1, L2 and R2. The row sets the seat's effort and its lenses. `matrix.sh up` seats the analysts on Sonnet and the Visionary on Opus at xhigh; `up --model MODEL` puts all seven on one model.
 
-| Row | Seats  | Effort | Lenses                                                    | Writes                           |
-| --- | ------ | ------ | --------------------------------------------------------- | -------------------------------- |
-| 0   | L0, R0 | xhigh  | adversarial and creative, such as the Saboteur, the Scout | cards and judgments              |
-| 1   | L1, R1 | high   | structural, such as the Minimalist, the Archaeologist     | cards and judgments              |
-| 2   | L2, R2 | medium | mechanical: the Notary and the Auditor                    | checks of the other rows' sheets |
+| Row | Seats  | Model  | Effort | Lenses                                                    | Writes                           |
+| --- | ------ | ------ | ------ | --------------------------------------------------------- | -------------------------------- |
+| 0   | L0, R0 | Sonnet | xhigh  | adversarial and creative, such as the Saboteur, the Scout | cards and judgments              |
+| 1   | L1, R1 | Sonnet | high   | structural, such as the Minimalist, the Archaeologist     | cards and judgments              |
+| 2   | L2, R2 | Sonnet | medium | mechanical: the Notary and the Auditor                    | checks of the other rows' sheets |
 
-The efforts are the room's default, and the desk lead may set others; effort and lens move together. Every brief gives each seat its row, its effort and its lens as neutral facts, and nothing about how the room is measured.
+The models and efforts are the room's default, and the desk lead may set others; effort and lens move together. Every brief gives each seat its row, its effort and its lens as neutral facts, and nothing about how the room is measured.
 
 **Names.** A matrix is a name prefix: its sessions are `PREFIX Visionary` and `PREFIX Analyst (SEAT)`, for example `Brainstorm Visionary` and `Brainstorm Analyst (L0)`, so that several matrices can run side by side and their names cluster. The prefix may be left out (`Visionary`, `Analyst (L0)`). The pane title, which Claude Code sets from the session name, is how `matrix.sh` finds a seat: `peek` reads the prefix from the caller's own title and refuses every other matrix, and `roster`, `status` and `wait` take a prefix with `-p`. A seat's sheet is `rK/analyst-SEAT.md`, such as `r1/analyst-L0.md`.
 

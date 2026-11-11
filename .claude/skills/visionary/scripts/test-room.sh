@@ -111,6 +111,32 @@ no_server() {
   ! tmux -S "$SOCK" list-sessions >/dev/null 2>&1
 }
 
+seat_runs() {
+  awk -F '\037' -v n="$1" -v m="$2" -v e="$3" '
+    {
+      named = 0
+      mm = ""
+      ee = ""
+      for (i = 1; i < NF; i++) {
+        if ($i == "-n" && $(i + 1) == n) named = 1
+        if ($i == "--model") mm = $(i + 1)
+        if ($i == "--effort") ee = $(i + 1)
+      }
+      if (named) {
+        found++
+        good = (mm == m && ee == e)
+      }
+    }
+    END { exit !(found == 1 && good) }' "$TEST_ROOM_LOG"
+}
+
+seats_run() {
+  seat_runs "$SESSION Visionary" "$1" xhigh &&
+    seat_runs "$SESSION Analyst (L0)" "$2" xhigh && seat_runs "$SESSION Analyst (R0)" "$2" xhigh &&
+    seat_runs "$SESSION Analyst (L1)" "$2" high && seat_runs "$SESSION Analyst (R1)" "$2" high &&
+    seat_runs "$SESSION Analyst (L2)" "$2" medium && seat_runs "$SESSION Analyst (R2)" "$2" medium
+}
+
 attach_control_client() {
   tmux -S "$SOCK" -f "$WORK/home/.tmux.conf" new-session -d -s keep -x 80 -y 24 "sleep 600"
   mkfifo "$WORK/ctl"
@@ -129,6 +155,13 @@ attach_control_client() {
 fresh
 rc="$(run up -p "$SESSION")"
 holds "with no setting of the user's, up builds the room of seven" room_up
+holds "the Visionary runs on opus at xhigh, and the analysts on sonnet, rows 0, 1 and 2 at xhigh, high and medium" seats_run opus sonnet
+holds "down stops it" down_stops_it
+
+fresh
+rc="$(run up -p "$SESSION" --model some-model)"
+holds "--model MODEL builds the room of seven" room_up
+holds "and puts all seven on MODEL, each at its own effort" seats_run some-model some-model
 holds "down stops it" down_stops_it
 
 fresh 'set -g destroy-unattached on'
