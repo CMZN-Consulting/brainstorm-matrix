@@ -94,7 +94,7 @@ Counted from the seats' own transcripts, each message once by its id, and priced
 | A storm on a private question, 7 November 2026 | 7 | 24 min in its three rounds; the whole run not recorded | 757,666 | 1.54 M | 88.8 M | 40.6 to 45.2, from the rounded counts | no |
 | The full room at roll call, 11 November 2026: Opus as the Visionary, Sonnet as the analysts | 7 | 3 min 1 s | 48,011 | 314,608 | 4,346,709 | 2.27 to 2.84 | no |
 
-The first three rows seated Opus 5.5 in every seat. The two storms ran on private questions whose files are not public. In them the Visionary wrote 37.7 and 30.0 percent of the output, at max effort; `matrix.sh up` starts it at xhigh since. Counting each line of a transcript instead of each message, an earlier method, gives 2.5 to 2.6 times these figures.
+The first three rows seated Opus 5.5 in every seat. The fourth row's price is the sum over its two models: the Visionary on Opus 5.5 wrote 16,958 output tokens, with 70,963 cache-written and 2,177,374 cache-read, 1.13 to 1.34 USD; the six analysts on Sonnet 5.5 wrote 31,053, with 243,645 and 2,169,335, 1.14 to 1.50 USD. The two storms ran on private questions whose files are not public. In them the Visionary wrote 37.7 and 30.0 percent of the output, at max effort; `matrix.sh up` starts it at xhigh since. Counting each line of a transcript instead of each message, an earlier method, gives 2.5 to 2.6 times the first three rows' figures.
 
 ## Max effort without drift
 
