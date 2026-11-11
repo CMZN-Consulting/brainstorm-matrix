@@ -193,6 +193,26 @@ analyst_prompts_name_seats() {
   done
 }
 
+banner_in_keep() {
+  local i
+  for ((i = 0; i < 50; i++)); do
+    if [ "$(tmux -S "$SOCK" capture-pane -p -S - -E - -t "=keep:" | grep -c '^BANNER-LINE-')" -eq 120 ]; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
+no_banner() {
+  local id n=0
+  [ "$(tmux -S "$SOCK" list-panes -s -t "=$SESSION" -F x 2>/dev/null | wc -l)" -eq 7 ] || return 1
+  for id in $(tmux -S "$SOCK" list-panes -s -t "=$SESSION" -F '#{pane_id}'); do
+    n=$((n + $(tmux -S "$SOCK" capture-pane -p -S - -E - -t "$id" | grep -c 'BANNER-LINE' || true)))
+  done
+  [ "$n" -eq 0 ]
+}
+
 no_room() {
   [ "$rc" -ne 0 ] && room_gone
 }
@@ -256,6 +276,14 @@ rc="$(run up -p "$SESSION")"
 holds "under a user's own pane-border-status and pane-border-format, up builds the room" room_up
 holds "the room's panes show the room's titles in their colours" colours_hold
 holds "the user's other session keeps the user's border, and the room set no option on it" user_keeps_own
+holds "down stops it" down_stops_it
+
+fresh "set -g default-command 'i=0; while [ \$i -lt 120 ]; do i=\$((i + 1)); echo BANNER-LINE-\$i; done; exec sleep 600'"
+tmux -S "$SOCK" new-session -d -s keep -x 80 -y 24
+holds "the user's shell prints its banner, 120 lines, in a pane of the user's own" banner_in_keep
+rc="$(run up -p "$SESSION")"
+holds "under a shell that prints a banner taller than a pane, up builds the room" room_up
+holds "and no pane's history or screen holds a line of the banner" no_banner
 holds "down stops it" down_stops_it
 
 fresh 'set -g destroy-unattached on'

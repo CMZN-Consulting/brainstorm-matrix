@@ -732,6 +732,7 @@ start_seat() {
   fi
   tmux respawn-pane -k -t "$pane" "$(seat_command "$name" "$model" "$effort" "$skill")" ||
     stop_room "tmux cannot start seat $seat in pane $pane"
+  tmux clear-history -t "$pane" >/dev/null 2>&1 || true
 }
 
 session_kept() {
