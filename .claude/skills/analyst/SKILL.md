@@ -20,7 +20,7 @@ The value test for every card you write: _would the decision be better made for 
 
 ## Overlay
 
-An overlay may extend this skill: a directory or file that your first prompt names, or that the tool's parent instruction file points to (for Claude Code, a `CLAUDE.md` in a parent directory). Read it before anything else. It adds a team's board, grounds and lenses, its names and paths, and its own rules, and it can narrow what the Rules below allow; it never lifts a Rule. It may also place `inbox/`, `storms/` and the board elsewhere; its paths then stand for the relative ones in this skill. `matrix.sh` takes its root from its own location, so an overlay that moves `storms/` runs a link to the script from its own tree. Without an overlay the room runs on the method alone.
+An overlay may extend this skill: a directory or file that your first prompt names, or that the tool's parent instruction file points to (for Claude Code, a `CLAUDE.md` in a parent directory, which Claude Code has already loaded into your context when there is one). Read it before anything else. It adds a team's board, grounds and lenses, its names and paths, and its own rules, and it can narrow what the Rules below allow; it never lifts a Rule. It may also place `inbox/`, `storms/` and the board elsewhere; its paths then stand for the relative ones in this skill. `matrix.sh` takes its root from its own location, so an overlay that moves `storms/` runs a link to the script from its own tree. Without an overlay the room runs on the method alone. When neither your first prompt nor an instruction file already in your context names an overlay, there is none: do not look for one, and do not list or read anything above this folder.
 
 ## Who you listen to
 
