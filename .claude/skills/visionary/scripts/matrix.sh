@@ -582,7 +582,7 @@ doctor() {
       fi
       ;;
     1) report step "Claude Code does not trust $ROOT yet: run claude there once and answer its trust question before up" ;;
-    *) report step "the trust of $ROOT cannot be read here: run claude there once and answer its trust question before up, unless you have" ;;
+    *) report step "the trust of $ROOT cannot be read here: run claude there once and answer its trust question before up, unless you already have" ;;
   esac
   rc=0
   if ! command -v tmux >/dev/null 2>&1; then

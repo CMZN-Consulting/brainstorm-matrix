@@ -407,7 +407,7 @@ Tokens, from the count of the seats' transcripts that the directing session supp
 
 | Seat | Effort | r1  | r2  | r3  | Output | Share | Input | Cache written | Cache read | Turns |
 | ---- | ------ | --- | --- | --- | ------ | ----- | ----- | ------------- | ---------- | ----- |
-| V    | max    |     |     |     |        |       |       |               |            |       |
+| V    | xhigh  |     |     |     |        |       |       |               |            |       |
 | L0   | xhigh  |     |     |     |        |       |       |               |            |       |
 | All  |        |     |     |     |        | 100%  |       |               |            |       |
 
@@ -487,7 +487,7 @@ Running totals first, then one row per storm and row.
 
 | Storm | Row | Effort | Cards | Survived | Alive | Findings | Confirmed | Misses |
 | ----- | --- | ------ | ----- | -------- | ----- | -------- | --------- | ------ |
-| All   | V   | max    |       |          |       | —        | —         | —      |
+| All   | V   | xhigh  |       |          |       | —        | —         | —      |
 | All   | 0   | xhigh  |       |          |       | —        | —         | —      |
 | All   | 1   | high   |       |          |       | —        | —         | —      |
 | All   | 2   | medium | —     | —        | —     |          |           |        |

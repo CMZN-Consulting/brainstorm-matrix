@@ -109,8 +109,8 @@ $MATRIX_ROOT/
 │   ├── SYNTHESIS.md        the decision memo
 │   ├── COST.md             the token count per seat and round, verbatim, when it comes
 │   └── RULING.md           the ruling, verbatim, when it comes
-├── examples/               one synthetic storm to read the shapes from
-└── .claude/skills/         visionary/ (this, lenses.md, templates.md, scripts/matrix.sh), analyst/
+├── examples/               two storms: one written by hand to show the shapes, one the record of a measured run
+└── .claude/skills/         visionary/ (this, lenses.md, templates.md, scripts/matrix.sh, scripts/test-memory.sh), analyst/
 ```
 
 `MATRIX.md`, `inbox/` and `storms/` are the room's working files and stay out of git; an overlay may keep them in a tree of its own. Storm 00 is the roll call, made by hand because `matrix.sh new` numbers from 01: its brief asks each analyst to load its skill and the overlay, if any, and to answer with a short sheet. A seat that joins a running room gets a roll call of its own, also under 00 (`storms/00-roll-call-SLUG/`). `matrix.sh` is `.claude/skills/visionary/scripts/matrix.sh`, run from the repo root.
