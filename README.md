@@ -2,12 +2,38 @@
 
 A seven-seat brainstorming room for Claude Code: one Visionary and six Analysts in a ladder of three rows of two, each a Claude session in its own tmux pane. A question goes in as a brief, the analysts of the first two rows answer it alone through named lenses, the third row checks their citations and their numbers, the Visionary funnels the cards through a ledger into options and a synthesis, and the session or person who asked rules on the findings. The Visionary runs at xhigh reasoning effort and each row at its own, so the room's rules are about keeping that effort on the question.
 
+**One measured run.** On 9 November 2026 a spark (the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer, written before the run and not changed after it, credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table, and `matrix.sh check` fails a row without it. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
+
+**Check it without a token.** In a clone, with no session and no network:
+
+```sh
+.claude/skills/visionary/scripts/matrix.sh check examples/01-ada-tool-library
+.claude/skills/visionary/scripts/matrix.sh check examples/02-spool-review
+(cd examples/02-spool-review && python3 -I score.py)
+```
+
+The first passes: that example was written by hand to show the shapes. The second fails three checks on the record of the measured run, which stands as the room left it: a ledger row that holds a range of cards, and the rows of the ledger and of the synthesis that cite a line without its path. The third prints the scorer's table.
+
+**What this does not show.** No run here compares the room with one session working alone; that control is designed and has not run. The measured run seats three of the seven; the full room has run only on desk questions a reader cannot check (see Cost). The room has run on Linux only. Every seat is a Claude Code session in permission mode `auto` unless you name another, and it spends real tokens: a full storm has cost 38 to 46 USD at list prices.
+
 ## Quickstart
+
+In short, with the steps below saying what each line does:
+
+```sh
+git clone https://github.com/CMZN-Consulting/brainstorm-matrix && cd brainstorm-matrix
+.claude/skills/visionary/scripts/matrix.sh doctor
+claude        # once: answer its trust question, then exit
+mkdir -p inbox && $EDITOR inbox/my-question.md
+.claude/skills/visionary/scripts/matrix.sh up -p Brainstorm --brief inbox/my-question.md
+tmux attach -t Brainstorm
+.claude/skills/visionary/scripts/matrix.sh down -p Brainstorm storms/01-ada-SLUG
+```
 
 You need Claude Code 2.1.236 or later, tmux, git and bash 4 or later. The room has run on Linux; macOS is untested, and needs a newer bash than the one it ships.
 
 1. Clone the repository and `cd` into it. `.claude/skills/visionary/scripts/matrix.sh doctor` checks tmux, bash, the CLI's version, whether Claude Code trusts the folder, whether this folder's Claude Code project memory is empty and, once sessions run, the directory their messages pass through: one line per check, `ok`, `step`, `skip` or `FAIL`, and a non-zero exit when one fails. A fresh clone is not trusted yet: run `claude` in it once, answer its trust question and exit, before `up`. In the skills, `$MATRIX_ROOT` is notation for this top directory, not an exported variable.
-2. `.claude/skills/visionary/scripts/matrix.sh up -p Brainstorm` builds the room in a new tmux session named `Brainstorm`: the Visionary in one window, and six analysts in a second, three rows of two. Each pane starts `claude` with its seat's name, `Brainstorm Visionary`, then `Brainstorm Analyst (L0)`, `(R0)`, `(L1)`, `(R1)`, `(L2)` and `(R2)`, each a placement, left or right, and a row; at its effort, xhigh for the Visionary, xhigh for row 0, high for row 1 and medium for row 2; in one permission mode for all seven, `auto` unless `--permission-mode` names another; and with its skill, `/visionary` or `/analyst`, as its first prompt. `--model` sets the model, `--spark` starts row 0 alone, and `--no-web` starts every seat without web tools, MCP servers or the Chrome integration. When a pane asks something only you can answer, such as whether you trust the folder, `up` names the pane and waits for you, ten minutes at most, then stops the room. The prefix names the matrix, so that several, each from a clone of its own, can run side by side, and it may be left out. The session name is how the Visionary messages an analyst; the pane title, which Claude Code sets from it, is how `matrix.sh` finds the analysts' panes and lets only the Visionary's pane look at its own matrix's, so leave `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` unset (`doctor` checks it) and the `terminalTitleFromRename` setting at its default. `BRIEFING.md` says what the brief carries below max. By hand, the room is the same seven panes: `claude` in each, the name set with `/rename`, the effort with `/effort`, one permission mode for all, and the skill loaded.
+2. `.claude/skills/visionary/scripts/matrix.sh up -p Brainstorm` builds the room in a new tmux session named `Brainstorm`: the Visionary in one window, and six analysts in a second, three rows of two. Each pane starts `claude` with its seat's name, `Brainstorm Visionary`, then `Brainstorm Analyst (L0)`, `(R0)`, `(L1)`, `(R1)`, `(L2)` and `(R2)`, each a placement, left or right, and a row; at its effort, xhigh for the Visionary, xhigh for row 0, high for row 1 and medium for row 2; in one permission mode for all seven, `auto` unless `--permission-mode` names another; and with its skill, `/visionary` or `/analyst`, as its first prompt. `--model` sets the model, `--spark` starts row 0 alone, and `--no-web` starts every seat without web tools, MCP servers or the Chrome integration. When a pane asks something only you can answer, such as whether you trust the folder, `up` names the pane and waits for you, ten minutes at most, then stops the room. The prefix names the matrix, so that several, each from a clone of its own, can run side by side, and it may be left out. The session name is how the Visionary messages an analyst; the pane title, which Claude Code sets from it, is how `matrix.sh` finds the analysts' panes and lets only the Visionary's pane look at its own matrix's, so leave `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` unset (`doctor` checks it) and the `terminalTitleFromRename` setting at its default. `BRIEFING.md` says what the brief carries below max. Without tmux, the room is the same seven sessions in seven terminals of any kind. Each is started as `up` starts it, for example `claude -n "Brainstorm Analyst (L0)" --effort xhigh --permission-mode auto "/analyst"`, and the Visionary last, with `/visionary` as its first prompt: the seats find one another by session name, not by pane. `new`, `status`, `wait` and `check` read files and work as they are, and `down STORM_DIR` still moves the memory; `up`, `roster` and `peek` need tmux, so the Visionary loses its look at an analyst's pane. The room has not been run this way.
 3. `tmux attach -t Brainstorm` (from inside tmux, `tmux switch-client -t Brainstorm`). `.claude/skills/visionary/scripts/matrix.sh roster -p Brainstorm`, run outside tmux or in a pane of that session, lists the seven panes with those titles (a leading glyph is normal), and `matrix.sh doctor -p Brainstorm` checks that no title repeats.
 4. Make a place for briefs (`mkdir -p inbox`) and drop one there: a Markdown file with the question, its shape and the files it concerns, for example `inbox/2026-01-15-my-question.md`. Name any repository the question reads by its absolute path; the room reads it, read-only. Tell the Visionary in its pane that the brief is there. To start a room on a brief instead, drop the brief first and pass it to `up`: `matrix.sh up -p Brainstorm --brief inbox/2026-01-15-my-question.md` starts the analysts first and the Visionary last, with "The brief is at inbox/2026-01-15-my-question.md." in its first prompt, so nothing is typed into a pane.
 5. The Visionary frames the storm (one run of the room on one brief) under `storms/`, messages the analysts, runs the rounds and writes the synthesis. It runs `matrix.sh status storms/01-ada-SLUG` to see where a round stands and `matrix.sh peek L0` to look at an analyst's pane. `roster` and `status` work from any pane of the tmux session; `peek` only from the Visionary's.
@@ -50,7 +76,15 @@ Each seat is a Claude Code session started in its own pane with its skill loaded
 
 ## Cost
 
-**A desk storm, which a reader cannot check.** The one count so far is of a storm the room ran on a desk question, whose question and files are not public. Counted once per message: 757,666 output tokens, 1.54 M tokens written to the cache and 88.8 M read from it, over 356 messages. The Visionary wrote 30.0 percent of the output.
+Counted from the seats' own transcripts, each message once by its id, and priced at the list price for Opus 5.5 (USD per million tokens: output 20, cache writes 5 to 8 by the cache's lifetime, cache reads 0.20). On a subscription the same tokens count against the plan's limits.
+
+| Run | Seats | Wall clock | Output tokens | Cache written | Cache read | USD at list | A reader can check it |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| The spark of `examples/02-spool-review`, one round | 3 | 18 min 40 s | 174,691 | 356,875 | 7,840,054 | 6.85 to 7.92 | yes, `examples/02-spool-review/COST.md` |
+| A desk storm of 8 and 9 November 2026 | 7 | 41 min, in two sittings | 580,822 | 2,681,135 | 63,133,190 | 37.65 to 45.69 | no |
+| A desk storm of 7 November 2026 | 7 | 24 min in its three rounds; the whole run not recorded | 757,666 | 1.54 M | 88.8 M | 40.6 to 45.2, from the rounded counts | no |
+
+The two desk storms ran on desk questions whose files are not public. In them the Visionary wrote 37.7 and 30.0 percent of the output, at max effort; `matrix.sh up` starts it at xhigh since. Counting each line of a transcript instead of each message, an earlier method, gives 2.5 to 2.6 times these figures.
 
 ## Max effort without drift
 
@@ -68,7 +102,7 @@ A team keeps its own material (its board, grounds and lenses, its names and path
 - `.claude/skills/visionary/lenses.md`: the lens deck.
 - `.claude/skills/visionary/scripts/matrix.sh`: the Visionary's tool for the roster, the peek, the storm directories, the round status and the wait for a round; `check STORM_DIR`, which tests a storm's files against the room's rules with no session and no tokens; and `doctor`, `up` and `down`, which check the machine, build the room and take it down.
 - `.claude/skills/visionary/scripts/test-memory.sh`: a test of how `doctor`, `up` and `down` treat this folder's Claude Code project memory, against a made-up configuration directory and a private tmux server, with no session and no tokens.
-- `examples/`: one synthetic storm.
+- `examples/`: two storms: `01-ada-tool-library`, written by hand to show the shapes, and `02-spool-review`, the record of the measured run with its key, scorer and count.
 
 `MATRIX.md`, `inbox/` and `storms/` are the room's working files: the board, the briefs and the storms. They stay out of the repository (see `.gitignore`); it carries the method, not a team's material.
 
