@@ -172,6 +172,27 @@ user_keeps_own() {
     [ -z "$(tmux -S "$SOCK" show-options -w -t "=keep:")" ] && [ -z "$(tmux -S "$SOCK" show-options -p -t "=keep:")" ]
 }
 
+prompt_is() {
+  awk -F '\037' -v n="$1" -v want="$2" '
+    {
+      for (i = 1; i < NF; i++) {
+        if ($i == "-n" && $(i + 1) == n) {
+          found++
+          got = $(NF - 1)
+        }
+      }
+    }
+    END { exit !(found == 1 && got == want) }' "$TEST_ROOM_LOG"
+}
+
+analyst_prompts_name_seats() {
+  local s n
+  for s in L0 R0 L1 R1 L2 R2; do
+    n="${1:+$1 }Analyst ($s)"
+    prompt_is "$n" "/analyst You are $n." || return 1
+  done
+}
+
 no_room() {
   [ "$rc" -ne 0 ] && room_gone
 }
@@ -195,8 +216,17 @@ fresh
 rc="$(run up -p "$SESSION")"
 holds "with no setting of the user's, up builds the room of seven" room_up
 holds "the Visionary runs on opus at xhigh, and the analysts on sonnet, rows 0, 1 and 2 at xhigh, high and medium" seats_run opus sonnet
+holds "each analyst's first prompt names its seat: /analyst You are $SESSION Analyst (SEAT)." analyst_prompts_name_seats "$SESSION"
 holds "each pane's title is on its top border in its seat's colour: the Visionary green, rows 0, 1 and 2 red, purple and blue" colours_hold
 holds "down stops it" down_stops_it
+
+fresh
+SESSION=matrix
+rc="$(run up)"
+holds "with no prefix, up builds the room of seven in the session matrix" room_up
+holds "and each analyst's first prompt names its seat with no prefix: /analyst You are Analyst (SEAT)." analyst_prompts_name_seats ""
+holds "down stops it" down_stops_it
+SESSION=TestRoom
 
 fresh
 rc="$(run up -p "$SESSION" --model some-model)"

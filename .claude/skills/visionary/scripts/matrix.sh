@@ -53,9 +53,10 @@ Every failure prints its reason and exits non-zero.
                                    seat, the Visionary on opus at xhigh and the analysts on sonnet,
                                    row 0 at xhigh, row 1 at high and row 2 at medium (--model MODEL
                                    puts all seven on MODEL), in one permission mode (default auto),
-                                   with its skill as the first prompt; the analysts start first and
-                                   the Visionary last; --brief adds "The brief is at PATH." to the
-                                   Visionary's first prompt, and --director adds "The directing
+                                   with its skill as the first prompt, an analyst's followed by
+                                   "You are NAME." with its session name; the analysts start first
+                                   and the Visionary last; --brief adds "The brief is at PATH." to
+                                   the Visionary's first prompt, and --director adds "The directing
                                    session is NAME." after it, NAME written as PREFIX is, for the
                                    session that brings the room its briefs; --no-web starts every
                                    seat without web tools, MCP servers or the Chrome integration.
@@ -718,7 +719,8 @@ wait_ready() {
 }
 
 start_seat() {
-  local pane="$1" seat="$2" model effort skill
+  local pane="$1" seat="$2" model effort skill name
+  name="$(seat_name "$PREFIX" "$seat")"
   if [ "$seat" = V ]; then
     model="${UP_MODEL:-$VISIONARY_MODEL}"
     effort="$VISIONARY_EFFORT"
@@ -726,9 +728,9 @@ start_seat() {
   else
     model="${UP_MODEL:-$ANALYST_MODEL}"
     effort="${ROW_EFFORT[${seat:1}]}"
-    skill=/analyst
+    skill="/analyst You are $name."
   fi
-  tmux respawn-pane -k -t "$pane" "$(seat_command "$(seat_name "$PREFIX" "$seat")" "$model" "$effort" "$skill")" ||
+  tmux respawn-pane -k -t "$pane" "$(seat_command "$name" "$model" "$effort" "$skill")" ||
     stop_room "tmux cannot start seat $seat in pane $pane"
 }
 
