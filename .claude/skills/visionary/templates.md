@@ -305,6 +305,8 @@ author: visionary
 | R2-V-1   | TITLE | V   | folded into O2 |
 | R1-AL1-4 | TITLE | AL1 | graveyard      |
 
+One row per card, under its own id: never a range such as `R1-V-1 to R1-V-10`. A table of holds, in a review, cites every line as `path:line`, as in `src/spool.py:88`, and never as a bare `:88` under a column named for the file.
+
 ## Checks
 
 Every finding of row 2, re-checked at its line or its number.
