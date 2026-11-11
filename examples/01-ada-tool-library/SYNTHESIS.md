@@ -82,7 +82,13 @@ none.
 
 ## Cost
 
-No minutes and no tokens: this example was written by hand, and no room ran it. Survival per row, from the ledger; row 2 did not check this example's round.
+This example was written by hand, and no room ran it: its minutes are the brief's box, 10:20Z to 11:05Z, not a measurement, and it has no count of tokens.
+
+| Round | Minutes | Sheet bytes                            | Cards | Alive after the ledger |
+| ----- | ------- | -------------------------------------- | ----- | ---------------------- |
+| r1    | 45      | 7,155, L0's sheet; L1's is not on file | 12    | 4                      |
+
+Survival per row, from the ledger; row 2 did not check this example's round.
 
 | Row | Seats | Cards | Survived | Alive  | Findings | Confirmed | Misses |
 | --- | ----- | ----- | -------- | ------ | -------- | --------- | ------ |
