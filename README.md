@@ -29,7 +29,7 @@ tmux attach -t Brainstorm        # to watch the room; it runs without you
 .claude/skills/visionary/scripts/matrix.sh down -p Brainstorm storms/01-ada-SLUG        # the storm's directory: ls storms/
 ```
 
-`Desk` is the name of your own session: start it with `claude -n Desk`, or type `/rename Desk` in one you have. In that session, ask Claude to send the session named `Brainstorm Visionary` a message saying where the brief is, for example `inbox/my-question.md` in this clone. The Visionary runs the storm and messages `Desk` back with the path of the synthesis. A session that bypasses permission prompts has its messages held for approval in the Visionary's pane. With no session of your own, start the room on a brief instead: `mkdir -p inbox && "${EDITOR:-vi}" inbox/my-question.md`, then `up -p Brainstorm --brief inbox/my-question.md`.
+`Desk` is the name of your own session: start it with `claude -n Desk`, or type `/rename Desk` in one you have. In that session, ask Claude to send the session named `Brainstorm Visionary` a message saying where the brief is, for example `inbox/my-question.md` in this clone. The Visionary runs the storm and messages `Desk` back with the path of the synthesis. A session in another permission mode than the room's, `auto` unless `up --permission-mode` names another, has its messages held for approval in the Visionary's pane. With no session of your own, start the room on a brief instead: `mkdir -p inbox && "${EDITOR:-vi}" inbox/my-question.md`, then `up -p Brainstorm --brief inbox/my-question.md`.
 
 You need tmux, the Claude Code CLI at 2.1.236 or later, bash 4 or later (it has run on bash 5.3), git and Python 3. The room has run on Linux; macOS is untested, and needs a newer bash than the one it ships.
 
