@@ -36,6 +36,8 @@ Every failure prints its reason and exits non-zero.
   doctor [-p PREFIX]               one line per check, non-zero exit when one fails: tmux, bash 4,
                                    the claude CLI at 2.1.236 or later, pane titles not switched off,
                                    CLAUDE_CODE_EFFORT_LEVEL unset (a "step" line names it when set),
+                                   a running tmux server that stops when no client is attached
+                                   (a "step" line when exit-unattached is on),
                                    whether Claude Code trusts this folder (read, never written;
                                    a "step" line says what to do), the matrix's pane titles
                                    unique, the cross-session socket directory while sessions run,
@@ -566,6 +568,9 @@ doctor() {
   else
     report ok "$TITLE_SWITCH is not set, so Claude Code titles each pane with its session name"
   fi
+  if [ "$(tmux show-options -sv exit-unattached 2>/dev/null || true)" = on ]; then
+    report step "the running tmux server stops when no client is attached (exit-unattached on), and a room on it stops with it: keep a client attached while the room runs, or set exit-unattached off"
+  fi
   if level="$(effort_switch)"; then
     report step "$EFFORT_SWITCH is ${level%%"$CHECK_SEP"*} in ${level#*"$CHECK_SEP"}, and it overrides --effort: every seat would run at that level whatever its row; unset it there for the ladder"
   else
@@ -707,6 +712,14 @@ start_seat() {
     stop_room "tmux cannot start seat $seat in pane $pane"
 }
 
+session_kept() {
+  tmux has-session -t "=$UP_SESSION" 2>/dev/null && return 0
+  if tmux list-sessions >/dev/null 2>&1; then
+    die "tmux ended the session $(quoted_session) as soon as up made it, and its server runs on: a hook or a setting of that server ends new sessions"
+  fi
+  die "tmux ended the session $(quoted_session) as soon as up made it: this server stops when no client is attached (exit-unattached on); run up from a pane of a tmux client attached to it, or set exit-unattached off"
+}
+
 split_off() {
   tmux split-window -d "$1" -P -F '#{pane_id}' -t "$2" -c "$ROOT" || stop_room "tmux cannot split pane $2"
 }
@@ -770,10 +783,11 @@ up() {
   if tmux has-session -t "=$UP_SESSION" 2>/dev/null; then
     die "a tmux session named $UP_SESSION is running; stop it (tmux kill-session -t $(quoted_session)) or choose another -p PREFIX"
   fi
-  vis="$(tmux new-session -d -P -F '#{pane_id}' -s "$UP_SESSION" -n Visionary -x 200 -y 50 -c "$ROOT")" ||
+  vis="$(tmux new-session -d -P -F '#{pane_id}' -s "$UP_SESSION" -n Visionary -x 200 -y 50 -c "$ROOT" \; set-option -t "=$UP_SESSION:" destroy-unattached off)" ||
     die "tmux cannot start a session named $UP_SESSION"
+  session_kept
   trap 'stop_room "up was interrupted"' INT TERM HUP
-  tmux set-window-option -t "$vis" remain-on-exit on >/dev/null || stop_room "tmux cannot keep exited panes in view"
+  tmux set-window-option -t "$vis" remain-on-exit on >/dev/null || { session_kept; stop_room "tmux cannot keep exited panes in view"; }
   tmux set-window-option -t "$vis" allow-set-title on >/dev/null 2>&1 || true
   a="$(tmux new-window -d -P -F '#{pane_id}' -t "=$UP_SESSION:" -n Analysts -c "$ROOT")" ||
     stop_room "tmux cannot open the Analysts window"
