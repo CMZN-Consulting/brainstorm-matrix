@@ -16,6 +16,7 @@ ROW_EFFORT=(xhigh high medium)
 VISIONARY_EFFORT=xhigh
 VISIONARY_MODEL=opus
 ANALYST_MODEL=sonnet
+BORDER_FORMAT=' #[fg=#{@matrix_colour},bold]#{pane_title}#[default] '
 CHECK_ROW=2
 CLI_MIN=2.1.236
 CLI_MIN_WHY='2.1.236 added notify_when_idle to cross-session SendMessage, which the Visionary subscribes with (CHANGELOG.md of anthropics/claude-code, section 2.1.236)'
@@ -58,6 +59,10 @@ Every failure prints its reason and exits non-zero.
                                    session is NAME." after it, NAME written as PREFIX is, for the
                                    session that brings the room its briefs; --no-web starts every
                                    seat without web tools, MCP servers or the Chrome integration.
+                                   On its own two windows only, up puts each pane's title on its
+                                   top border in its seat's colour: the Visionary green, row 0 red,
+                                   row 1 magenta, row 2 blue; a tmux that lacks an option for it
+                                   leaves the titles as they are.
                                    When a pane asks something only a person can answer, up prints
                                    the step and waits MATRIX_UP_WAIT seconds (default 600); if it is
                                    not answered, up stops the session and exits non-zero
@@ -735,6 +740,21 @@ session_kept() {
   die "tmux ended the session $(quoted_session) as soon as up made it: this server stops when no client is attached (exit-unattached on); run up from a pane of a tmux client attached to it, or set exit-unattached off"
 }
 
+seat_colour() {
+  case "$1" in
+    V) printf '%s' green ;;
+    ?0) printf '%s' red ;;
+    ?1) printf '%s' magenta ;;
+    *) printf '%s' blue ;;
+  esac
+}
+
+paint() {
+  tmux set-option -p -t "$1" @matrix_colour "$(seat_colour "$2")" >/dev/null 2>&1 || return 0
+  tmux set-window-option -t "$1" pane-border-format "$BORDER_FORMAT" >/dev/null 2>&1 || return 0
+  tmux set-window-option -t "$1" pane-border-status top >/dev/null 2>&1 || true
+}
+
 split_off() {
   tmux split-window -d "$1" -P -F '#{pane_id}' -t "$2" -c "$ROOT" || stop_room "tmux cannot split pane $2"
 }
@@ -831,6 +851,10 @@ up() {
     panes_of=("$a" "$b" "$c" "$d" "$e" "$f")
   fi
   count="${#order[@]}"
+  paint "$vis" V
+  for ((i = 0; i < count; i++)); do
+    paint "${panes_of[$i]}" "${order[$i]}"
+  done
   start_seat "${panes_of[0]}" "${order[0]}"
   wait_ready "${panes_of[0]}" "$(seat_name "$PREFIX" "${order[0]}")"
   for ((i = 1; i < count; i++)); do

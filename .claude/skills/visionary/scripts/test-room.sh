@@ -150,6 +150,28 @@ first_prompt_is() {
     END { exit !(found == 1 && got == want) }' "$TEST_ROOM_LOG"
 }
 
+colours_hold() {
+  local id title want got n=0
+  while IFS=$'\t' read -r id title; do
+    case "$title" in
+      *Visionary) want=green ;;
+      *"(L0)" | *"(R0)") want=red ;;
+      *"(L1)" | *"(R1)") want=magenta ;;
+      *"(L2)" | *"(R2)") want=blue ;;
+      *) return 1 ;;
+    esac
+    got="$(tmux -S "$SOCK" display-message -p -t "$id" '#{E:pane-border-format}|#{pane-border-status}')"
+    [ "$got" = " #[fg=$want,bold]$title#[default] |top" ] || return 1
+    n=$((n + 1))
+  done < <(tmux -S "$SOCK" list-panes -s -t "=$SESSION" -F $'#{pane_id}\t#{pane_title}')
+  [ "$n" -eq 7 ]
+}
+
+user_keeps_own() {
+  [ "$(tmux -S "$SOCK" display-message -p -t "=keep:" '#{E:pane-border-format}|#{pane-border-status}')" = "USER 0|bottom" ] &&
+    [ -z "$(tmux -S "$SOCK" show-options -w -t "=keep:")" ] && [ -z "$(tmux -S "$SOCK" show-options -p -t "=keep:")" ]
+}
+
 no_room() {
   [ "$rc" -ne 0 ] && room_gone
 }
@@ -173,6 +195,7 @@ fresh
 rc="$(run up -p "$SESSION")"
 holds "with no setting of the user's, up builds the room of seven" room_up
 holds "the Visionary runs on opus at xhigh, and the analysts on sonnet, rows 0, 1 and 2 at xhigh, high and medium" seats_run opus sonnet
+holds "each pane's title is on its top border in its seat's colour: the Visionary green, rows 0, 1 and 2 red, magenta and blue" colours_hold
 holds "down stops it" down_stops_it
 
 fresh
@@ -196,6 +219,14 @@ holds "down stops it" down_stops_it
 fresh
 rc="$(run up -p "$SESSION" --director "Desk; rm")"
 holds "a NAME that PREFIX's rule refuses is refused before any session is made" no_room
+
+fresh 'set -g pane-border-status bottom' 'set -g pane-border-format "USER #{pane_index}"'
+tmux -S "$SOCK" new-session -d -s keep -x 80 -y 24 "sleep 600"
+rc="$(run up -p "$SESSION")"
+holds "under a user's own pane-border-status and pane-border-format, up builds the room" room_up
+holds "the room's panes show the room's titles in their colours" colours_hold
+holds "the user's other session keeps the user's border, and the room set no option on it" user_keeps_own
+holds "down stops it" down_stops_it
 
 fresh 'set -g destroy-unattached on'
 rc="$(run up -p "$SESSION")"
