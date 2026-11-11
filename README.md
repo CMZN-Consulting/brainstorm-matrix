@@ -2,7 +2,7 @@
 
 A seven-seat brainstorming room for Claude Code: one Visionary and six Analysts in a ladder of three rows of two, each a Claude session in its own tmux pane. A question goes in as a brief, the analysts of the first two rows answer it alone through named lenses, the third row checks their citations and their numbers, the Visionary funnels the cards through a ledger into options and a synthesis, and the session or person who asked rules on the findings. The Visionary runs at xhigh reasoning effort and each row at its own, so the room's rules are about keeping that effort on the question.
 
-**One measured run.** On 9 November 2026 a spark (the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer, written before the run and not changed after it, credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table, and `matrix.sh check` fails a row without it. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
+**One measured run.** On 9 November 2026 a spark (the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer, written before the run and not changed after it, credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table of the ledger and the synthesis, and `matrix.sh check` fails either file when a table row cites a line without its path. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
 
 **Check it without a token.** In a clone, with no session and no network:
 
@@ -24,7 +24,7 @@ In short, with the steps below saying what each line does:
 git clone https://github.com/CMZN-Consulting/brainstorm-matrix && cd brainstorm-matrix
 .claude/skills/visionary/scripts/matrix.sh doctor
 claude        # once: answer its trust question, then exit
-mkdir -p inbox && $EDITOR inbox/my-question.md
+mkdir -p inbox && "${EDITOR:-vi}" inbox/my-question.md
 .claude/skills/visionary/scripts/matrix.sh up -p Brainstorm --brief inbox/my-question.md
 tmux attach -t Brainstorm
 .claude/skills/visionary/scripts/matrix.sh down -p Brainstorm storms/01-ada-SLUG
