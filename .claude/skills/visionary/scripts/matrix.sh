@@ -36,7 +36,8 @@ Every failure prints its reason and exits non-zero.
                                    the claude CLI at 2.1.236 or later, pane titles not switched off,
                                    whether Claude Code trusts this folder (read, never written;
                                    a "step" line says what to do), the matrix's pane titles
-                                   unique, the cross-session socket directory while sessions run
+                                   unique, the cross-session socket directory while sessions run,
+                                   and this folder's Claude Code project memory empty
   up [-p PREFIX] [--spark] [--model MODEL] [--permission-mode MODE] [--no-web] [--brief PATH]
                                    a new detached tmux session named PREFIX (or matrix): window
                                    Visionary, window Analysts with the six seats in three rows of
@@ -84,6 +85,15 @@ Every failure prints its reason and exits non-zero.
                                    with a Minutes column, a Recommendation and a Dissent. Prints
                                    the ledger's four counts and the memo's head, times itself, and
                                    exits non-zero when a check fails
+  down [-p PREFIX] [STORM_DIR]     stops the room's tmux session, then moves every file of this
+                                   folder's Claude Code project memory, where a seat's auto-memory
+                                   lands, into STORM_DIR/auto-memory/ and leaves it empty; a git
+                                   reset does not touch that directory, and up refuses to start
+                                   while it holds a file, or while another room of this folder
+                                   runs. down stops nothing and moves nothing when STORM_DIR is not
+                                   a storm's, or is left out while the memory holds a file; it
+                                   moves nothing when the record already holds a file of the same
+                                   name, or while another room of this folder runs
 EOF
 }
 
@@ -515,7 +525,7 @@ while True:
 }
 
 doctor() {
-  local dir t where rc by
+  local dir t where rc by mem entries
   FAILS=0
   [ "$#" -eq 0 ] || die "doctor takes nothing but -p PREFIX"
   if ! command -v tmux >/dev/null 2>&1; then
@@ -572,6 +582,15 @@ doctor() {
   else
     report FAIL "claude sessions run but no cross-session socket directory holds a socket; /status in a session names the directory it tried"
   fi
+  if ! mem="$(memory_dir 2>&1)"; then
+    report FAIL "${mem#matrix: }"
+  elif ! entries="$(memory_files "$mem" 2>/dev/null)"; then
+    report FAIL "this folder's Claude Code project memory $mem cannot be listed"
+  elif [ -z "$entries" ]; then
+    report ok "this folder's Claude Code project memory is empty ($mem)"
+  else
+    report FAIL "this folder's Claude Code project memory holds $(wc -l <<<"$entries" | tr -d ' ') file(s) from earlier sessions in this folder ($mem): move them into a storm's record with matrix.sh down STORM_DIR, or aside by hand; up refuses to start until it is empty"
+  fi
   if [ "$FAILS" -gt 0 ]; then
     printf '%s\n' "$FAILS check(s) failed"
     return 1
@@ -587,7 +606,12 @@ UP_SESSION=""
 
 seat_command() {
   local -a argv
-  argv=("$CLAUDE_BIN" -n "$1" --effort "$2" --permission-mode "$UP_MODE")
+  if [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
+    argv=(env "CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR")
+  else
+    argv=(env -u CLAUDE_CONFIG_DIR)
+  fi
+  argv+=("$CLAUDE_BIN" -n "$1" --effort "$2" --permission-mode "$UP_MODE")
   if [ -n "$UP_MODEL" ]; then
     argv+=(--model "$UP_MODEL")
   fi
@@ -667,7 +691,7 @@ split_off() {
 }
 
 up() {
-  local spark=0 vis a b c d e f i count where dead
+  local spark=0 vis a b c d e f i count where dead mem entries here
   local -a order panes_of
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -716,6 +740,11 @@ up() {
   if where="$(title_switch)"; then
     die "$TITLE_SWITCH is set in $where, so Claude Code would set no pane title and matrix.sh would find no seat"
   fi
+  mem="$(memory_dir)"
+  entries="$(memory_files "$mem")"
+  [ -z "$entries" ] || die "this folder's Claude Code project memory holds files from earlier sessions in this folder ($mem): move them into a storm's record with matrix.sh down STORM_DIR, or aside by hand, so that the room starts clean"
+  here="$(rooms_here)"
+  [ -z "$here" ] || die "a room of this folder already runs in tmux session(s) $here, and a second room's seats would share this folder's Claude Code project memory with it: start the second room from a clone of its own"
   UP_SESSION="$(room_session)"
   if tmux has-session -t "=$UP_SESSION" 2>/dev/null; then
     die "a tmux session named $UP_SESSION is running; stop it (tmux kill-session -t $(quoted_session)) or choose another -p PREFIX"
@@ -1377,12 +1406,150 @@ check_storm() {
   [ "$CHECK_FAILS" -eq 0 ]
 }
 
+memory_dir() {
+  local cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}" out rc=0
+  command -v python3 >/dev/null 2>&1 || die "python3 is needed to name this folder's Claude Code project memory"
+  out="$(python3 -I -X utf8 -c '
+import json, os, sys
+cfg, root = sys.argv[1], os.path.realpath(sys.argv[2])
+if os.environ.get("CLAUDE_COWORK_MEMORY_PATH_OVERRIDE"):
+    print("CLAUDE_COWORK_MEMORY_PATH_OVERRIDE sends every seat\x27s auto-memory to one directory that matrix.sh cannot keep apart by room; unset it for the room")
+    sys.exit(2)
+for src in ("/etc/claude-code/managed-settings.json", "/Library/Application Support/ClaudeCode/managed-settings.json", os.path.join(root, ".claude", "settings.local.json"), os.path.join(root, ".claude", "settings.json"), os.path.join(cfg, "settings.json")):
+    try:
+        with open(src, encoding="utf-8") as f:
+            v = json.load(f)
+    except (OSError, ValueError):
+        continue
+    if isinstance(v, dict) and v.get("autoMemoryDirectory") is not None:
+        print("autoMemoryDirectory in " + src + " sends every session\x27s auto-memory to one directory that matrix.sh cannot keep apart by room; remove it for the room")
+        sys.exit(2)
+base, d = root, root
+while True:
+    if os.path.exists(os.path.join(d, ".git")):
+        base = d
+        break
+    if os.path.dirname(d) == d:
+        break
+    d = os.path.dirname(d)
+try:
+    with open(os.path.join(base, ".git"), encoding="utf-8") as f:
+        t = f.read().strip()
+    if t.startswith("gitdir:"):
+        g = os.path.normpath(os.path.join(base, t[7:].strip()))
+        with open(os.path.join(g, "commondir"), encoding="utf-8") as f:
+            c = os.path.normpath(os.path.join(g, f.read().strip()))
+        if os.path.dirname(g) == os.path.join(c, "worktrees"):
+            if os.path.basename(c) == ".git":
+                base = os.path.dirname(c)
+            elif not os.path.exists(os.path.join(c, ".git")):
+                base = c
+except OSError:
+    pass
+b = base.encode("utf-16-le", "surrogatepass")
+units = [int.from_bytes(b[i:i + 2], "little") for i in range(0, len(b), 2)]
+slug = "".join(chr(u) if u < 128 and chr(u).isalnum() else "-" for u in units)
+if len(slug) > 200:
+    h = 0
+    for u in units:
+        h = (h * 31 + u) & 0xFFFFFFFF
+    h = abs(h - (1 << 32) if h >= 1 << 31 else h)
+    digits = ""
+    while True:
+        h, r = divmod(h, 36)
+        digits = "0123456789abcdefghijklmnopqrstuvwxyz"[r] + digits
+        if h == 0:
+            break
+    slug = slug[:200] + "-" + digits
+print(os.path.join(cfg, "projects", slug, "memory"))
+' "$cfg" "$ROOT")" || rc=$?
+  [ "$rc" -eq 0 ] || die "${out:-cannot name the Claude Code project memory of this folder under $cfg/projects}"
+  printf '%s\n' "$out"
+}
+
+memory_files() {
+  local mem="$1"
+  [ -d "$mem" ] || return 0
+  find -H "$mem" -mindepth 1 -maxdepth 1 -print || die "cannot list $mem"
+}
+
+rooms_here() {
+  local phys sname path title
+  phys="$(CDPATH='' cd -- "$ROOT" && pwd -P)"
+  { tmux list-panes -a -F "#{session_name}$CHECK_SEP#{pane_current_path}$CHECK_SEP#{pane_title}" 2>/dev/null || true; } |
+    while IFS="$CHECK_SEP" read -r sname path title; do
+      if { [ "$path" = "$ROOT" ] || [ "$path" = "$phys" ]; } && is_matrix_title "$(bare "$title")" "" 0; then
+        printf '%s\n' "$sname"
+      fi
+    done | sort -u | paste -sd, -
+}
+
+down() {
+  local storm="" base mem entry name dest session here list moved=0
+  local -a items=()
+  [ "$#" -le 1 ] || die "down takes at most one STORM_DIR"
+  storm="${1:-}"
+  session="$(room_session)"
+  if [ -n "$storm" ]; then
+    [ -d "$storm" ] || die "no storm directory: $storm"
+    base="$(CDPATH='' cd -- "$storm" && pwd)" || die "cannot enter $storm"
+    base="${base##*/}"
+    [[ "$base" =~ ^[0-9]+-[a-z0-9]+(-[a-z0-9]+)*$ ]] || die "$storm is not a storm directory, named NN-CODENAME-SLUG as matrix.sh new names it"
+  fi
+  mem="$(memory_dir)"
+  if [ -z "$storm" ] && [ -n "$(memory_files "$mem")" ]; then
+    die "this folder's Claude Code project memory holds files from earlier sessions in this folder ($mem): move them into a storm's record with matrix.sh down STORM_DIR, or aside by hand (the room was not stopped)"
+  fi
+  if [ -n "${TMUX_PANE:-}" ] && [ "$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}' 2>/dev/null || true)" = "$session" ]; then
+    die "down stops the tmux session $session, which runs this pane, so it would end before the move: run it from outside the room"
+  fi
+  if tmux has-session -t "=$session" 2>/dev/null; then
+    tmux kill-session -t "=$session" || die "tmux cannot stop the session $session"
+    printf '%s\n' "down: stopped the tmux session $session"
+  else
+    printf '%s\n' "down: no tmux session named $session is running"
+  fi
+  here="$(rooms_here)"
+  [ -z "$here" ] || die "a room of this folder still runs in tmux session(s) $here, and its seats share this folder's Claude Code project memory: stop it with matrix.sh down -p PREFIX, then move the memory"
+  list="$(mktemp)" || die "cannot make a scratch file"
+  if [ -d "$mem" ]; then
+    find -H "$mem" -mindepth 1 -maxdepth 1 -print0 >"$list" || {
+      rm -f "$list"
+      die "cannot list $mem"
+    }
+  fi
+  while IFS= read -r -d '' entry; do
+    items+=("$entry")
+  done <"$list"
+  rm -f "$list"
+  if [ "${#items[@]}" -eq 0 ]; then
+    printf '%s\n' "down: this folder's Claude Code project memory is empty ($mem)"
+    return 0
+  fi
+  [ -n "$storm" ] || die "this folder's Claude Code project memory holds files from earlier sessions in this folder ($mem): move them into a storm's record with matrix.sh down STORM_DIR, or aside by hand"
+  dest="$storm/auto-memory"
+  for entry in "${items[@]}"; do
+    name="${entry##*/}"
+    if [ -e "$dest/$name" ] || [ -L "$dest/$name" ]; then
+      die "$dest/$name exists; move it aside first (nothing was moved)"
+    fi
+  done
+  mkdir -p "$dest" || die "cannot make $dest"
+  for entry in "${items[@]}"; do
+    mv -- "$entry" "$dest/" || die "cannot move $entry into $dest"
+    printf '%s\n' "down: moved ${entry##*/} into $dest"
+    moved=$((moved + 1))
+  done
+  [ -z "$(memory_files "$mem")" ] || die "this folder's Claude Code project memory $mem is still not empty"
+  printf '%s\n' "down: moved $moved file(s); this folder's Claude Code project memory is empty ($mem)"
+}
+
 PREFIX=""
 HAVE_PREFIX=0
 cmd="${1:-help}"
 shift || true
 case "$cmd" in
-  roster | status | wait | doctor | up)
+  roster | status | wait | doctor | up | down)
     if [ "${1:-}" = "-p" ]; then
       [ "$#" -ge 2 ] || die "-p takes a PREFIX"
       PREFIX="$2"
@@ -1400,6 +1567,7 @@ case "$cmd" in
   status) status "$@" ;;
   wait) wait_round "$@" ;;
   check) check_storm "$@" ;;
+  down) down "$@" ;;
   help | -h | --help) usage ;;
   *)
     usage >&2
