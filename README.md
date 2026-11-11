@@ -2,6 +2,10 @@
 
 A seven-seat brainstorming room for Claude Code: one Visionary and six Analysts in a ladder of three rows of two, each a Claude session in its own tmux pane. A question goes in as a brief, the analysts of the first two rows answer it alone through named lenses, the third row checks their citations and their numbers, the Visionary funnels the cards through a ledger into options and a synthesis, and the session or person who asked rules on the findings. The room stands beside the sessions you already run: your own Claude Code session sends the Visionary a brief by message, goes on with its work, and gets a message back when the synthesis has landed. The Visionary runs on Opus at xhigh reasoning effort and the analysts on Sonnet, row 0 at xhigh, row 1 at high and row 2 at medium, so the room's rules are about keeping that effort on the question.
 
+![The room at roll call: the Visionary's pane and the six analysts' panes](docs/room.png)
+
+_The room at roll call, rendered from captures of its seven panes; the title bars carry the seats' colours._
+
 **One measured run.** On 9 November 2026 a spark (one round; here the Visionary and the two analysts of row 0) reviewed a 148-line Python module against the 48-line README that specifies it. Six defects had been planted in the module, and the key was kept outside the room. The run took 18 min 40 s by the wall clock and 174,691 output tokens over the three seats, 6.85 to 7.92 USD at list prices. The scorer was written before the run and not changed after it, which the repository's history cannot show (`SCORE.md` says why); it credits 1 defect of 6: it reads citations of the form `path:line`, and the room's table of holds gave its lines as `:88` under a column headed with the file's name. Read by hand against the key, the holds name all six and add three beyond it. The gap is the room's defect and is now a ground, G19: the Visionary's skill asks for `path:line` in every table of the ledger and the synthesis, and `matrix.sh check` fails either file when a table row cites a line without its path. No run has tested that ground yet. The record, the key, the scorer and the count are in `examples/02-spool-review/`.
 
 **Check it without a token.** In a clone, with no session and no network:
@@ -88,6 +92,7 @@ Counted from the seats' own transcripts, each message once by its id, and priced
 | The spark of `examples/02-spool-review`, one round | 3 | 18 min 40 s | 174,691 | 356,875 | 7,840,054 | 6.85 to 7.92 | yes, `examples/02-spool-review/COST.md` |
 | A storm on a private question, 8 and 9 November 2026 | 7 | 41 min, in two sittings | 580,822 | 2,681,135 | 63,133,190 | 37.65 to 45.69 | no |
 | A storm on a private question, 7 November 2026 | 7 | 24 min in its three rounds; the whole run not recorded | 757,666 | 1.54 M | 88.8 M | 40.6 to 45.2, from the rounded counts | no |
+| The full room at roll call, 11 November 2026: Opus as the Visionary, Sonnet as the analysts | 7 | 3 min 1 s | 48,011 | 314,608 | 4,346,709 | 2.27 to 2.84 | no |
 
 The first three rows seated Opus 5.5 in every seat. The two storms ran on private questions whose files are not public. In them the Visionary wrote 37.7 and 30.0 percent of the output, at max effort; `matrix.sh up` starts it at xhigh since. Counting each line of a transcript instead of each message, an earlier method, gives 2.5 to 2.6 times these figures.
 
@@ -109,6 +114,7 @@ A team keeps its own material (its board, grounds and lenses, its names and path
 - `.claude/skills/visionary/scripts/test-memory.sh`: a test of how `doctor`, `up` and `down` treat this folder's Claude Code project memory, against a made-up configuration directory and a private tmux server, with no session and no tokens.
 - `.claude/skills/visionary/scripts/test-room.sh`: a test of how `up` builds the room on a private tmux server that carries a user's own settings, with a stand-in for `claude`, a made-up home and configuration directory, and no session and no tokens.
 - `examples/`: two storms: `01-ada-tool-library`, written by hand to show the shapes, and `02-spool-review`, the record of the measured run with its key, scorer and count.
+- `docs/`: `room.png`, the picture above, and `room.gif`, the same roll call as a timelapse of its captures.
 
 `MATRIX.md`, `inbox/` and `storms/` are the room's working files: the board, the briefs and the storms. They stay out of the repository (see `.gitignore`); it carries the method, not a team's material.
 
