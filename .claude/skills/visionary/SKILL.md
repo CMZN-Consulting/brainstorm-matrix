@@ -110,7 +110,7 @@ $MATRIX_ROOT/
 │   ├── COST.md             the token count per seat and round, verbatim, when it comes
 │   └── RULING.md           the ruling, verbatim, when it comes
 ├── examples/               two storms: one written by hand to show the shapes, one the record of a measured run
-└── .claude/skills/         visionary/ (this, lenses.md, templates.md, scripts/matrix.sh, scripts/test-memory.sh), analyst/
+└── .claude/skills/         visionary/ (this, lenses.md, templates.md, scripts/matrix.sh, scripts/test-memory.sh, scripts/test-room.sh), analyst/
 ```
 
 `MATRIX.md`, `inbox/` and `storms/` are the room's working files and stay out of git; an overlay may keep them in a tree of its own. Storm 00 is the roll call, made by hand because `matrix.sh new` numbers from 01: its brief asks each analyst to load its skill and the overlay, if any, and to answer with a short sheet. A seat that joins a running room gets a roll call of its own, also under 00 (`storms/00-roll-call-SLUG/`). `matrix.sh` is `.claude/skills/visionary/scripts/matrix.sh`, run from the repo root.
@@ -178,7 +178,7 @@ Storm Ada r1 is open — L0, row 0 at xhigh, your lens is The Scout: the brief i
 Storm Ada, the check of r1 is open — L2, row 2 at medium, your lens is The Notary: the brief is storms/01-ada-SLUG/r1/check.md, your sheet goes to storms/01-ada-SLUG/r1/analyst-L2.md.
 ```
 
-Within a minute, `matrix.sh peek SEAT` each pane once to see the brief landed. If a send reports the message held for approval (the sender and the recipient run in different permission modes), tell the desk lead, who approves it in that pane.
+Within a minute, `matrix.sh peek SEAT` each pane once to see the brief landed. If a send reports the message held for approval (one of the two sessions bypasses permission prompts and the other does not), tell the desk lead, who approves it in that pane.
 
 Each send buys one idle notice: you are told when that analyst next goes idle, exits, or outlives the subscription. On each notice, run `matrix.sh status STORM_DIR`. `sealed` is done. `blocked` carries its reason in the sheet; answer it. `draft` or `missing` means peek, then a kind message and a fresh subscription (SendMessage with `notify_when_idle: true` and no message costs the analyst nothing). If idle notices fail you, `matrix.sh wait ROUND_DIR` with `run_in_background` re-invokes you when every sheet is sealed or one is blocked; it waits for rows 0 and 1, and for row 2 as well once the round holds `check.md`, unless you name the seats.
 
