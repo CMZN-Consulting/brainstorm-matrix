@@ -7,7 +7,7 @@ if [ -z "${BASH_VERSINFO[0]:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
 fi
 shopt -s inherit_errexit 2>/dev/null || true
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+ROOT="$(CDPATH='' cd -- "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 NAMES=(ada babbage curie dirac euler feynman gauss hopper ising jacobi kolmogorov lamport mandelbrot
   noether ostrom pascal quetelet ramanujan shannon turing ulam volterra wiener xenakis yau zermelo)
 LADDER=(L0 R0 L1 R1 L2 R2)
@@ -61,6 +61,29 @@ Every failure prints its reason and exits non-zero.
                                    or MATRIX_WAIT_MINUTES (default 90) pass; run it in the
                                    background. The default is rows 0 and 1, and row 2 as well
                                    once the round holds check.md
+  check STORM_DIR                  a storm's files against the room's rules, with no session, no
+                                   network and no tokens: LEDGER.md has a card table, with Card and
+                                   Fate columns, each card on a row of its own, named for its
+                                   round, with one fate of four (alive, floor, folded, graveyard);
+                                   at most four cards in ten of each round stay alive; every card
+                                   headed ### under a Cards or Holds heading of a sheet is in the
+                                   ledger; every path:line a card cites, under its ### heading or
+                                   on a table row whose first cell is its id (a path with a slash
+                                   or an extension; a bare name such as Makefile:40 is not read,
+                                   and a name that ends like a host, such as db.local:5432, only
+                                   when it is a file) resolves, in the storm, at the commit
+                                   GROUND.md pins or in the working tree, to a line in range, and a
+                                   quote after it holds within two lines, blanks collapsed; outside
+                                   its graveyard SYNTHESIS.md names only cards that survived the
+                                   ledger, except in its risks a buried card whose epitaph in the
+                                   ledger says its objection is carried as a risk, and a card an
+                                   epitaph names after the buried one is a reference; it names no
+                                   card the ledger lacks, and no finding of row 2 that no other
+                                   file of the storm names; no table of the ledger or the synthesis
+                                   cites a line without its path; the synthesis has a cost table
+                                   with a Minutes column, a Recommendation and a Dissent. Prints
+                                   the ledger's four counts and the memo's head, times itself, and
+                                   exits non-zero when a check fails
 EOF
 }
 
@@ -748,6 +771,612 @@ up() {
   printf '%s\n' "up: the room is up in tmux session $UP_SESSION ($CLAUDE_BIN $CLI_VER, mode $UP_MODE${UP_MODEL:+, model $UP_MODEL}); attach with: $(attach_hint)"
 }
 
+CHECK_FAILS=0
+CHECK_WORK=""
+CHECK_PIN=""
+CHECK_PIN_GIT=""
+CHECK_STORM=""
+CHECK_EN=$'\xe2\x80\x93'
+CHECK_EM=$'\xe2\x80\x94'
+CHECK_SEP=$'\037'
+CHECK_UTF8=""
+
+check_line() {
+  printf '%-5s %s\n' "$1" "$2"
+  if [ "$1" = FAIL ]; then
+    CHECK_FAILS=$((CHECK_FAILS + 1))
+  fi
+}
+
+check_ledger() {
+  awk '
+    function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+    function bare(s) { s = tolower(s); gsub(/[`*_~]/, "", s); return trim(s) }
+    function isfate(w) { return w == "alive" || w == "floor" || w == "folded" || w == "graveyard" }
+    function fate(cell,   c, k, w, s, first, prev) {
+      c = cell
+      gsub(/~~[^~]*~~/, "", c)
+      c = bare(c)
+      k = index(c, ":")
+      if (k > 0) c = substr(c, 1, k - 1)
+      first = ""
+      prev = ""
+      while (match(c, /[a-z]+(-[a-z]+)*/)) {
+        s = substr(c, 1, RSTART - 1)
+        w = substr(c, RSTART, RLENGTH)
+        c = substr(c, RSTART + RLENGTH)
+        if (first == "") {
+          if (!isfate(w)) return "invalid"
+          first = w
+        } else if (isfate(w) && w != first && (isfate(prev) || prev == "or" || prev == "and" || prev == "then" || prev == "now" || prev == "later" || s ~ /[,;\/|+&]/)) {
+          return "invalid"
+        }
+        prev = w
+      }
+      if (first == "") return "invalid"
+      return first
+    }
+    BEGIN { OFS = "\037" }
+    /^\|/ {
+      row = $0
+      gsub(/\\\|/, "\001", row)
+      n = split(row, cell, "|")
+      if (!intable) {
+        fc = 0
+        ic = 0
+        for (i = 2; i < n; i++) {
+          x = bare(cell[i])
+          if (x == "fate") fc = i
+          if (x == "card") ic = i
+        }
+        if (fc && ic) { intable = 1; skip = 1 }
+        next
+      }
+      if (skip) { skip = 0; next }
+      id = cell[ic]
+      gsub(/[`*_~]/, "", id)
+      id = trim(id)
+      k = index(id, "](")
+      if (substr(id, 1, 1) == "[" && k > 0 && substr(id, length(id)) == ")") id = substr(id, 2, k - 2)
+      if (id == "") id = "-"
+      raw = trim(cell[fc])
+      gsub(/\001/, "|", raw)
+      print id, fate(cell[fc]), FNR, raw
+      next
+    }
+    { intable = 0; skip = 0 }
+  ' "$1"
+}
+
+check_findings() {
+  awk '
+    function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+    /^\|/ {
+      row = $0
+      gsub(/\\\|/, "\001", row)
+      n = split(row, cell, "|")
+      if (!intable) {
+        fc = 0
+        for (i = 2; i < n; i++) {
+          x = tolower(cell[i])
+          gsub(/[`*_~]/, "", x)
+          if (trim(x) == "finding") fc = i
+        }
+        if (fc) { intable = 1; skip = 1 }
+        next
+      }
+      if (skip) { skip = 0; next }
+      id = cell[fc]
+      gsub(/[`*~]/, "", id)
+      id = trim(id)
+      if (id != "") print id
+      next
+    }
+    { intable = 0; skip = 0 }
+  ' "$1"
+}
+
+check_cards() {
+  env ${CHECK_UTF8:+"LC_ALL=$CHECK_UTF8"} awk -v en="$CHECK_EN" -v em="$CHECK_EM" '
+    BEGIN {
+      OFS = "\037"
+      cre = "[[:alnum:]_./~-]*[[:alnum:]_~-]([.][A-Za-z][A-Za-z0-9]*)?:[0-9]+((-|" en "|" em ")[0-9]+)?"
+    }
+    FNR == 1 { insection = 0; card = ""; kind = ""; front = 0; intab = 0; outer = "" }
+    FNR == 1 && $0 == "---" { front = 1; next }
+    front && $0 == "---" { front = 0; next }
+    front { if ($1 == "kind:") kind = $2; next }
+    kind == "check" { next }
+    /^## / { s = tolower($0); insection = (s ~ /(^|[^a-z])(cards|holds)([^a-z]|$)/); card = ""; intab = 0; next }
+    !/^\|/ && intab { intab = 0; card = outer }
+    /^\|/ {
+      c1 = $0
+      sub(/^\|[ \t]*/, "", c1)
+      sub(/[ \t]*\|.*$/, "", c1)
+      gsub(/[`*~]/, "", c1)
+      if (c1 ~ /^[Rr][0-9]+-(A[LR][01]|V)-[A-Za-z0-9]+$/) {
+        if (!intab) outer = card
+        intab = 1
+        card = c1
+      } else if (intab) {
+        card = outer
+      }
+    }
+    /^### / {
+      h = substr($0, 5)
+      gsub(/[`*~]/, "", h)
+      sub(/^[ \t]*\[?/, "", h)
+      id = (match(h, /^[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9]/) ? substr(h, RSTART, RLENGTH) : "")
+      card = ""
+      if (insection || id ~ /^[Rr][0-9]+-(A[LR][0-9]+|V)-[A-Za-z0-9]+$/) {
+        if (id == "") {
+          k = index(h, " ")
+          id = (k ? substr(h, 1, k - 1) : h)
+        }
+        card = id
+        print "C", FILENAME, FNR, card
+      }
+    }
+    card != "" {
+      rest = $0
+      while (match(rest, cre)) {
+        cite = substr(rest, RSTART, RLENGTH)
+        pre = (RSTART > 1 ? substr(rest, RSTART - 1, 1) : "")
+        rest = substr(rest, RSTART + RLENGTH)
+        gsub(en, "-", cite)
+        gsub(em, "-", cite)
+        k = index(cite, ":")
+        path = substr(cite, 1, k - 1)
+        span = substr(cite, k + 1)
+        if (pre == ":" || pre == "@") continue
+        if (path ~ /^[0-9.]+$/) continue
+        host = 0
+        if (path !~ /\//) {
+          if (path !~ /[.][A-Za-z][A-Za-z0-9]*$/) continue
+          if (path ~ /[.](com|org|net|io|dev|app|ai|cloud|internal|local|lan|svc|cluster|uk|eu|us|de|jp)$/) host = 1
+        }
+        after = rest
+        if (pre == "`" && substr(after, 1, 1) == "`") after = substr(after, 2)
+        quote = ""
+        if ($0 !~ /^#/ && match(after, "^ *([:(-]|" en "|" em ")? *`[^`]+`")) {
+          q = substr(after, RSTART, RLENGTH)
+          tail = substr(after, RSTART + RLENGTH)
+          sub("^ *([:(-]|" en "|" em ")? *`", "", q)
+          sub(/`$/, "", q)
+          if (!match(q, "^" cre "$")) {
+            quote = q
+            rest = tail
+          }
+        }
+        a = span
+        b = span
+        if (index(span, "-")) {
+          a = substr(span, 1, index(span, "-") - 1)
+          b = substr(span, index(span, "-") + 1)
+        }
+        print "Q", FILENAME, FNR, card, path, a, b, host, quote
+      }
+    }
+  ' "$@"
+}
+
+check_synthesis_ids() {
+  CHECK_IDS="$2" CHECK_KNOWN="$3" awk '
+    BEGIN {
+      OFS = "\037"
+      n = split(ENVIRON["CHECK_IDS"], list, "\n")
+      for (i = 1; i <= n; i++) if (list[i] != "") want[list[i]] = 1
+      n = split(ENVIRON["CHECK_KNOWN"], list, "\n")
+      for (i = 1; i <= n; i++) if (list[i] != "") known[list[i]] = 1
+    }
+    /^[ \t]*(```|~~~)/ { fence = !fence }
+    !fence && /^# / { grave = 0; risks = 0; next }
+    !fence && /^## / {
+      h = tolower($0)
+      grave = (h ~ /^##[ \t]+(the[ \t]+)?graveyard/)
+      risks = (!grave && h ~ /(^|[^a-z])risks?([^a-z]|$)/)
+      first = 1
+      byhead = 0
+      next
+    }
+    grave && !fence && /^###/ { first = 1; byhead = 0 }
+    grave && (/^[ \t]*([-*+]|[0-9]+[.])[ \t]/ || /^\|/) { first = 1; byhead = 0 }
+    grave && /^[ \t]*$/ && !byhead { first = 1 }
+    {
+      line = $0
+      while (match(line, /[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9]/)) {
+        tok = substr(line, RSTART, RLENGTH)
+        line = substr(line, RSTART + RLENGTH)
+        if (tok in want) {
+          print tok, FNR, (grave ? (first ? "graveyard" : "reference") : (risks ? "risks" : "body"))
+          if (grave) { first = 0; if (/^###/) byhead = 1 }
+        } else if (!(tok in known) && tok ~ /^[Rr][0-9]+-(A[LR][0-9]+|V)-[A-Za-z0-9]+$/) {
+          print tok, FNR, "unknown"
+        }
+      }
+    }
+  ' "$1"
+}
+
+check_carried() {
+  CHECK_IDS="$2" awk '
+    function flush(   b) {
+      if (id != "") {
+        b = tolower(text)
+        sub(/^[ \t]*([-*+]|[0-9]+[.])?[ \t]*[*][*][^*]*[*][*]/, "", b)
+        ns = split(b, sent, /[.;!?][ \t]/)
+        for (k = 1; k <= ns; k++) if (sent[k] ~ /(^|[^a-z])carried([^a-z]|$)/ && sent[k] ~ /(^|[^a-z])risks?([^a-z]|$)/ && sent[k] !~ /(not|never|n\047t|no longer|neither)[ \t]+([a-z]+[ \t]+)?carried|carried[ \t]+nowhere/) { o = sent[k]; gsub(tolower(id), "", o); if (o !~ /r[0-9]+-(a[lr][0-9]+|v)-[a-z0-9]+/) { print id; break } }
+      }
+      id = ""
+      text = ""
+    }
+    BEGIN {
+      n = split(ENVIRON["CHECK_IDS"], list, "\n")
+      for (i = 1; i <= n; i++) if (list[i] != "") want[list[i]] = 1
+    }
+    /^[ \t]*(```|~~~)/ { fence = !fence }
+    !fence && /^##? / { flush(); grave = (tolower($0) ~ /^##[ \t]+(the[ \t]+)?graveyard/); byhead = 0; next }
+    !grave { next }
+    !fence && /^###/ { flush(); byhead = 0 }
+    /^[ \t]*([-*+]|[0-9]+[.])[ \t]/ || /^\|/ { flush(); byhead = 0 }
+    /^[ \t]*$/ && !byhead { flush(); next }
+    {
+      if (id == "") {
+        line = $0
+        while (match(line, /[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9]/)) {
+          tok = substr(line, RSTART, RLENGTH)
+          line = substr(line, RSTART + RLENGTH)
+          if (tok in want) { id = tok; if (/^###/) byhead = 1; break }
+        }
+      }
+      if (!/^###/) text = text " " $0
+    }
+    END { flush() }
+  ' "$1"
+}
+
+check_bare() {
+  awk '
+    BEGIN { OFS = "\037" }
+    FNR == 1 { if (fname != "") print fname, rows, firstline, firstref; fname = FILENAME; rows = 0; firstline = ""; firstref = ""; intab = 0 }
+    !/^\|/ { intab = 0; next }
+    /^\|[ \t:|-]+$/ { next }
+    {
+      row = $0
+      gsub(/\\\|/, "\001", row)
+      n = split(row, cell, "|")
+      if (!intab) {
+        intab = 1
+        split("", filecol)
+        for (i = 2; i <= n; i++) filecol[i] = (cell[i] ~ /[A-Za-z0-9_-][.][A-Za-z][A-Za-z0-9]*|[\/]/)
+        next
+      }
+      for (i = 2; i <= n; i++) {
+        if (!match(cell[i], /(^|[^A-Za-z0-9_.\/~-])`?:[0-9]+(-[0-9]+)?/)) continue
+        r = substr(cell[i], RSTART, RLENGTH)
+        if (!filecol[i] && cell[i] !~ /[A-Za-z0-9_-][.][A-Za-z][A-Za-z0-9]*:[0-9]/) continue
+        sub(/^[^`:]*/, "", r)
+        gsub(/`/, "", r)
+        rows++
+        if (firstline == "") { firstline = FNR; firstref = r }
+        break
+      }
+    }
+    END { if (fname != "") print fname, rows, firstline, firstref }
+  ' "$@"
+}
+
+check_resolve() {
+  local p="$1" rest cand obj dir hits=0 found=""
+  case "$p" in
+    /*)
+      if [ -f "$p" ]; then
+        printf '%s' "file:$p"
+        return 0
+      fi
+      ;;
+  esac
+  if [[ "$p" != */* ]] && [ ! -f "$CHECK_STORM/$p" ]; then
+    while IFS= read -r cand; do
+      if [ "${cand##*/}" = "$p" ] && [ "$cand" != "$p" ]; then
+        hits=$((hits + 1))
+        found="$cand"
+      fi
+    done <"$CHECK_WORK/ground-paths"
+    if [ "$hits" -eq 1 ] && check_resolve "$found"; then
+      return 0
+    fi
+    hits=0
+    found=""
+  fi
+  rest="$p"
+  while [ -n "$rest" ]; do
+    if [ -f "$CHECK_STORM/$rest" ]; then
+      printf '%s' "file:$CHECK_STORM/$rest"
+      return 0
+    fi
+    if [ -n "$CHECK_PIN" ]; then
+      obj="$(printf '%s\n' "$CHECK_PIN:./$rest" | GIT_NO_LAZY_FETCH=1 git -C "$CHECK_PIN_GIT" cat-file --batch-check='%(objecttype) %(objectname)' --follow-symlinks 2>/dev/null || true)"
+      obj="${obj%%$'\n'*}"
+      if [[ "$obj" =~ ^blob\ ([0-9a-f]+)$ ]]; then
+        printf '%s' "git:${BASH_REMATCH[1]}"
+        return 0
+      fi
+    fi
+    while IFS= read -r dir; do
+      if [ -f "$dir/$rest" ]; then
+        printf '%s' "file:$dir/$rest"
+        return 0
+      fi
+    done <"$CHECK_WORK/roots"
+    if [ -f "$ROOT/$rest" ]; then
+      printf '%s' "file:$ROOT/$rest"
+      return 0
+    fi
+    case "$rest" in
+      */*) rest="${rest#*/}" ;;
+      *) rest="" ;;
+    esac
+  done
+  if [ -f "$CHECK_STORM/GROUND.md" ]; then
+    while IFS= read -r cand; do
+      if [ "$cand" != "$p" ] && [[ "$cand" == */"$p" ]]; then
+        hits=$((hits + 1))
+        found="$cand"
+      fi
+    done <"$CHECK_WORK/ground-paths"
+    if [ "$hits" -eq 1 ]; then
+      check_resolve "$found"
+      return
+    fi
+  fi
+  return 1
+}
+
+check_text() {
+  local where="$1" key
+  key="$(printf '%s' "$where" | cksum | cut -d' ' -f1)"
+  if [ ! -f "$CHECK_WORK/$key" ]; then
+    case "$where" in
+      git:*) GIT_NO_LAZY_FETCH=1 git -C "$CHECK_PIN_GIT" cat-file blob "${where#git:}" >"$CHECK_WORK/$key" 2>/dev/null || return 1 ;;
+      file:*) cp "${where#file:}" "$CHECK_WORK/$key" 2>/dev/null || return 1 ;;
+    esac
+  fi
+  printf '%s' "$CHECK_WORK/$key"
+}
+
+collapse() {
+  LC_ALL=C tr -s ' \t' '  ' | LC_ALL=C sed 's/^ //; s/ $//'
+}
+
+check_storm() {
+  local storm="${1:-}" t0 t1 ledger synth ids known id fate line raw total alive floor folded grave
+  local r n a sheet citations=0 resolved=0 quotes=0 held=0 where text lines lo hi window q
+  local tag file fline card path qa qb host quote syn_ids tok sline secfate carried
+  local named=0 head bfile brows bline bref
+  local -a sheets bare_files
+  local -A fate_of=() round_n=() round_a=() seen_id=()
+  [ "$#" -eq 1 ] || die "check takes one STORM_DIR"
+  [ -d "$storm" ] || die "no storm directory: $storm"
+  CHECK_STORM="$(CDPATH='' cd -- "$storm" && pwd)" || die "cannot enter $storm"
+  t0="${EPOCHREALTIME:-$(date +%s)}"
+  t0="${t0/,/.}"
+  CHECK_WORK="$(mktemp -d)" || die "cannot make a scratch directory"
+  trap 'rm -rf "$CHECK_WORK"' EXIT
+  CHECK_FAILS=0
+  CHECK_PIN=""
+  ledger="$CHECK_STORM/LEDGER.md"
+  synth="$CHECK_STORM/SYNTHESIS.md"
+  printf '%s\n' "check $CHECK_STORM"
+  : >"$CHECK_WORK/ground-paths"
+  : >"$CHECK_WORK/roots"
+  CHECK_PIN_GIT="$ROOT"
+  if [ -f "$CHECK_STORM/GROUND.md" ]; then
+    { grep -o '`/[^`]*`' "$CHECK_STORM/GROUND.md" || true; } | tr -d '`' | sort -u | while IFS= read -r dir; do
+      dir="${dir%/}"
+      if [ -n "$dir" ] && [ -d "$dir" ]; then
+        printf '%s\n' "$dir"
+      fi
+    done >"$CHECK_WORK/roots"
+    CHECK_PIN="$(grep -i -o 'pinned to `[0-9a-f]\{7,40\}`' "$CHECK_STORM/GROUND.md" | head -n 1 | tr 'A-F' 'a-f' | grep -o '[0-9a-f]\{7,40\}' || true)"
+    if [ -n "$CHECK_PIN" ] && ! GIT_NO_LAZY_FETCH=1 git -C "$ROOT" cat-file -e "$CHECK_PIN^{commit}" 2>/dev/null; then
+      while IFS= read -r dir; do
+        if GIT_NO_LAZY_FETCH=1 git -C "$dir" cat-file -e "$CHECK_PIN^{commit}" 2>/dev/null; then
+          CHECK_PIN_GIT="$dir"
+          break
+        fi
+      done <"$CHECK_WORK/roots"
+    fi
+    if [ -n "$CHECK_PIN" ] && ! GIT_NO_LAZY_FETCH=1 git -C "$CHECK_PIN_GIT" cat-file -e "$CHECK_PIN^{commit}" 2>/dev/null; then
+      check_line note "GROUND.md pins $CHECK_PIN, which neither this repository nor a directory GROUND.md names holds; citations are read from the working tree"
+      CHECK_PIN=""
+    fi
+    if [ -n "$CHECK_PIN" ] && [ -n "$(git -C "$CHECK_PIN_GIT" config --get-regexp '^(remote\..*\.promisor|extensions\.partialclone)$' 2>/dev/null || true)" ]; then
+      check_line note "this clone is partial: a file whose content at $CHECK_PIN is not here is read from the working tree, where its lines may differ"
+    fi
+    { grep -o '`[^`]*/[^`]*`' "$CHECK_STORM/GROUND.md" || true; } | tr -d '`' | sed 's/:[0-9-]*$//' | sort -u >"$CHECK_WORK/ground-paths" || die "cannot read $CHECK_STORM/GROUND.md"
+  fi
+  : >"$CHECK_WORK/rows"
+  if [ ! -f "$ledger" ]; then
+    check_line FAIL "no LEDGER.md"
+  else
+    check_ledger "$ledger" >"$CHECK_WORK/rows" || die "cannot read $ledger"
+    [ -s "$CHECK_WORK/rows" ] || check_line FAIL "LEDGER.md has no card table with a Card and a Fate column"
+  fi
+  total=0 alive=0 floor=0 folded=0 grave=0
+  ids=""
+  while IFS="$CHECK_SEP" read -r id fate line raw; do
+    if [ "$id" = - ]; then
+      check_line FAIL "LEDGER.md:$line: a row of the card table names no card"
+      continue
+    fi
+    if ! [[ "$id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+      check_line FAIL "LEDGER.md:$line: the row names '$id', not one card; a card takes a row of its own"
+      continue
+    fi
+    total=$((total + 1))
+    if [ -n "${seen_id[$id]-}" ]; then
+      check_line FAIL "LEDGER.md:$line: card $id is listed twice"
+    fi
+    seen_id[$id]=1
+    ids="$ids$id"$'\n'
+    fate_of[$id]="$fate"
+    case "$fate" in
+      alive) alive=$((alive + 1)) ;;
+      floor) floor=$((floor + 1)) ;;
+      folded) folded=$((folded + 1)) ;;
+      graveyard) grave=$((grave + 1)) ;;
+      *) check_line FAIL "LEDGER.md:$line: card $id has no single fate of the four: '$raw'" ;;
+    esac
+    if [[ "$id" =~ ^[Rr]([0-9]+)- ]]; then
+      r=$((10#${BASH_REMATCH[1]}))
+      round_n[$r]=$((${round_n[$r]-0} + 1))
+      if [ "$fate" = alive ]; then
+        round_a[$r]=$((${round_a[$r]-0} + 1))
+      fi
+    else
+      check_line FAIL "LEDGER.md:$line: card $id names no round"
+    fi
+  done <"$CHECK_WORK/rows"
+  if [ -f "$ledger" ]; then
+    check_line ok "the ledger's four counts: alive $alive, floor $floor, folded $folded, graveyard $grave, of $total cards"
+  fi
+  for r in $(if [ "${#round_n[@]}" -gt 0 ]; then printf '%s\n' "${!round_n[@]}" | sort -n; fi); do
+    n="${round_n[$r]}"
+    a="${round_a[$r]-0}"
+    if [ $((a * 10)) -le $((n * 4)) ]; then
+      check_line ok "round r$r: $a of $n cards alive, within four in ten"
+    else
+      check_line FAIL "round r$r: $a of $n cards alive, over four in ten"
+    fi
+  done
+  sheets=()
+  find -L "$CHECK_STORM" -mindepth 2 -maxdepth 2 -type f \( -name 'analyst-[LR][0-9].md' -o -name 'visionary.md' \) >"$CHECK_WORK/sheets" || check_line FAIL "the storm's round directories cannot all be listed"
+  while IFS= read -r sheet; do
+    case "${sheet#"$CHECK_STORM"/}" in
+      r[0-9]*/*) sheets+=("$sheet") ;;
+    esac
+  done < <(sort "$CHECK_WORK/sheets")
+  : >"$CHECK_WORK/cards"
+  CHECK_UTF8="$(locale -a 2>/dev/null | grep -m 1 -ixE 'c[.]utf-?8|en_US[.]utf-?8' || true)"
+  if [ "${#sheets[@]}" -gt 0 ]; then
+    check_cards "${sheets[@]}" >"$CHECK_WORK/cards" || check_line FAIL "a sheet of the storm cannot be read"
+  fi
+  while IFS="$CHECK_SEP" read -r tag file fline card path qa qb host quote; do
+    case "$tag" in
+      C)
+        if [ -z "$card" ] || [ -z "${seen_id[$card]-}" ]; then
+          check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card is on a sheet and not in the ledger"
+        fi
+        ;;
+      Q)
+        if ! where="$(check_resolve "$path")"; then
+          where=""
+        fi
+        if [ -z "$where" ] && [ "$host" = 1 ]; then
+          continue
+        fi
+        citations=$((citations + 1))
+        if ! [[ "$qa" =~ ^[0-9]{1,9}$ && "$qb" =~ ^[0-9]{1,9}$ ]]; then
+          check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card cites $path:$qa-$qb, which is no line number"
+          continue
+        fi
+        qa=$((10#$qa))
+        qb=$((10#$qb))
+        if [ -z "$where" ]; then
+          check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card cites $path:$qa, which resolves to no file"
+          continue
+        fi
+        if ! text="$(check_text "$where")"; then
+          check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card cites $path, which cannot be read"
+          continue
+        fi
+        lines="$(awk 'END { print NR }' "$text")"
+        if [ "$qa" -lt 1 ] || [ "$qb" -gt "$lines" ] || [ "$qa" -gt "$qb" ]; then
+          check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card cites $path:$qa-$qb, past the file's $lines lines"
+          continue
+        fi
+        resolved=$((resolved + 1))
+        if [ -n "$quote" ]; then
+          quotes=$((quotes + 1))
+          lo=$((qa - 2))
+          hi=$((qb + 2))
+          [ "$lo" -ge 1 ] || lo=1
+          window="$(LC_ALL=C sed -n "${lo},${hi}p" "$text" | LC_ALL=C tr '\n' ' ' | collapse)"
+          q="$(printf '%s' "$quote" | collapse)"
+          if [[ "$window" == *"$q"* ]]; then
+            held=$((held + 1))
+          else
+            check_line FAIL "${file#"$CHECK_STORM"/}:$fline: card $card quotes '$quote', which is not at $path:$qa within two lines"
+          fi
+        fi
+        ;;
+    esac
+  done <"$CHECK_WORK/cards"
+  check_line ok "citations: $resolved of $citations in the cards on file resolve at their lines; $held of $quotes quotes hold within two lines"
+  if [ ! -f "$synth" ]; then
+    check_line FAIL "no SYNTHESIS.md"
+  else
+    known="$ids"
+    if [ -f "$ledger" ]; then
+      known="$known$(check_findings "$ledger")" || die "cannot read $ledger"
+    fi
+    known="$known"$'\n'"$(find -L "$CHECK_STORM" -maxdepth 2 -type f -name '*.md' ! -name SYNTHESIS.md -exec grep -ohE '[Rr][0-9]+-A[LR]2-[A-Za-z0-9]+' {} + 2>/dev/null || true)"
+    syn_ids="$(check_synthesis_ids "$synth" "$ids" "$known")" || die "cannot read $synth"
+    carried=""
+    if [ -f "$ledger" ]; then
+      carried="$(check_carried "$ledger" "$ids")" || die "cannot read $ledger"
+    fi
+    while IFS="$CHECK_SEP" read -r tok sline secfate; do
+      [ -n "$tok" ] || continue
+      fate="${fate_of[$tok]-}"
+      named=$((named + 1))
+      if [ "$secfate" = unknown ]; then
+        check_line FAIL "SYNTHESIS.md:$sline: names $tok, which is not in the ledger"
+      elif [ "$secfate" = graveyard ] && [ "$fate" != graveyard ]; then
+        check_line FAIL "SYNTHESIS.md:$sline: its graveyard cites $tok, whose fate is $fate"
+      elif [ "$secfate" = body ] && [ "$fate" = graveyard ]; then
+        check_line FAIL "SYNTHESIS.md:$sline: cites $tok, which the ledger buried, outside its graveyard and its risks"
+      elif [ "$secfate" = risks ] && [ "$fate" = graveyard ] && ! grep -qxF -- "$tok" <<<"$carried"; then
+        check_line FAIL "SYNTHESIS.md:$sline: its risks cite $tok, which the ledger buried without carrying its objection as a risk"
+      fi
+    done <<<"$syn_ids"
+    check_line ok "the synthesis names cards $named time(s): outside its graveyard only cards that survived the ledger may stand, except in its risks a buried card whose epitaph carries its objection as a risk; each graveyard entry's first card is a buried one, and a card an epitaph names after it is a reference"
+    if awk '/^## / { c = (tolower($0) ~ /^##[ \t]+(the[ \t]+)?cost/); t = 0; next } !/^\|/ { t = 0; next } c && !t { n = split(tolower($0), h, "|"); for (i = 2; i <= n; i++) { x = h[i]; gsub(/^[ \t]+|[ \t]+$/, "", x); if (x == "minutes") f = 1 } } { t = 1 } END { exit !f }' "$synth"; then
+      check_line ok "the synthesis has a cost table with a Minutes column"
+    else
+      check_line FAIL "the synthesis has no cost table with a Minutes column"
+    fi
+  fi
+  bare_files=()
+  if [ -f "$ledger" ]; then
+    bare_files+=("$ledger")
+  fi
+  if [ -f "$synth" ]; then
+    bare_files+=("$synth")
+  fi
+  : >"$CHECK_WORK/bare"
+  if [ "${#bare_files[@]}" -gt 0 ]; then
+    check_bare "${bare_files[@]}" >"$CHECK_WORK/bare" || die "cannot read the ledger or the synthesis"
+  fi
+  while IFS="$CHECK_SEP" read -r bfile brows bline bref; do
+    [ -n "$bfile" ] || continue
+    if [ "$brows" -gt 0 ]; then
+      check_line FAIL "${bfile#"$CHECK_STORM"/}:$bline: $brows table row(s) cite a line with no path, such as $bref; write path:line"
+    fi
+  done <"$CHECK_WORK/bare"
+  if [ -f "$synth" ]; then
+    head="$(awk '/^## / { s = tolower($0); sub(/^##[ \t]+/, "", s); sub(/^the[ \t]+/, "", s); s = (s ~ /^recommendation/ ? "r" : (s ~ /^dissent/ ? "d" : (s ~ /^cost/ ? "c" : ""))); shown = 0; next } (s == "r" || s == "d") && NF && !shown { print (s == "r" ? "Recommendation" : "Dissent") ": " $0; shown = 1 } s == "c" && /^\|/ { print }' "$synth")" || die "cannot read $synth"
+    grep -q '^Recommendation: ' <<<"$head" || check_line FAIL "SYNTHESIS.md has no Recommendation section for the memo's head"
+    grep -q '^Dissent: ' <<<"$head" || check_line FAIL "SYNTHESIS.md has no Dissent section for the memo's head"
+    printf '%s\n' "--- the memo's head" "$head"
+  fi
+  t1="${EPOCHREALTIME:-$(date +%s)}"
+  t1="${t1/,/.}"
+  printf '%s\n' "--- check ran in $(awk -v a="$t0" -v b="$t1" 'BEGIN { printf "%.3f", b - a }') s; $CHECK_FAILS check(s) failed"
+  [ "$CHECK_FAILS" -eq 0 ]
+}
+
 PREFIX=""
 HAVE_PREFIX=0
 cmd="${1:-help}"
@@ -770,6 +1399,7 @@ case "$cmd" in
   new) new_storm "$@" ;;
   status) status "$@" ;;
   wait) wait_round "$@" ;;
+  check) check_storm "$@" ;;
   help | -h | --help) usage ;;
   *)
     usage >&2
