@@ -45,6 +45,7 @@ Every failure prints its reason and exits non-zero.
                                    unique, the cross-session socket directory while sessions run,
                                    and this folder's Claude Code project memory empty
   up [-p PREFIX] [--spark] [--model MODEL] [--permission-mode MODE] [--no-web] [--brief PATH]
+     [--director NAME]
                                    a new detached tmux session named PREFIX (or matrix): window
                                    Visionary, window Analysts with the six seats in three rows of
                                    two (--spark: row 0 only); each pane starts claude named for its
@@ -52,12 +53,14 @@ Every failure prints its reason and exits non-zero.
                                    row 0 at xhigh, row 1 at high and row 2 at medium (--model MODEL
                                    puts all seven on MODEL), in one permission mode (default auto),
                                    with its skill as the first prompt; the analysts start first and
-                                   the Visionary last, and --brief adds "The brief is at PATH." to
-                                   the Visionary's first prompt; --no-web starts every seat
-                                   without web tools, MCP servers or the Chrome integration. When a
-                                   pane asks something only a person can answer, up prints the step
-                                   and waits MATRIX_UP_WAIT seconds (default 600); if it is not
-                                   answered, up stops the session and exits non-zero
+                                   the Visionary last; --brief adds "The brief is at PATH." to the
+                                   Visionary's first prompt, and --director adds "The directing
+                                   session is NAME." after it, NAME written as PREFIX is, for the
+                                   session that brings the room its briefs; --no-web starts every
+                                   seat without web tools, MCP servers or the Chrome integration.
+                                   When a pane asks something only a person can answer, up prints
+                                   the step and waits MATRIX_UP_WAIT seconds (default 600); if it is
+                                   not answered, up stops the session and exits non-zero
   roster [-p PREFIX]               the panes of this tmux session: id, window.pane, title;
                                    with PREFIX, only that matrix's
   peek SEAT [LINES]                the last LINES (default 40) of that seat's pane, in the
@@ -630,6 +633,7 @@ doctor() {
 
 UP_MODEL=""
 UP_BRIEF=""
+UP_DIRECTOR=""
 UP_MODE=auto
 UP_NOWEB=0
 UP_SESSION=""
@@ -713,7 +717,7 @@ start_seat() {
   if [ "$seat" = V ]; then
     model="${UP_MODEL:-$VISIONARY_MODEL}"
     effort="$VISIONARY_EFFORT"
-    skill="/visionary${UP_BRIEF:+ The brief is at $UP_BRIEF.}"
+    skill="/visionary${UP_BRIEF:+ The brief is at $UP_BRIEF.}${UP_DIRECTOR:+ The directing session is $UP_DIRECTOR.}"
   else
     model="${UP_MODEL:-$ANALYST_MODEL}"
     effort="${ROW_EFFORT[${seat:1}]}"
@@ -753,6 +757,11 @@ up() {
         UP_BRIEF="$2"
         shift
         ;;
+      --director)
+        [ "$#" -ge 2 ] || die "--director takes a NAME"
+        UP_DIRECTOR="$2"
+        shift
+        ;;
       --model)
         [ "$#" -ge 2 ] || die "--model takes a MODEL"
         UP_MODEL="$2"
@@ -763,12 +772,15 @@ up() {
         UP_MODE="$2"
         shift
         ;;
-      *) die "up takes -p PREFIX, --spark, --model MODEL, --permission-mode MODE, --no-web and --brief PATH, not '$1'" ;;
+      *) die "up takes -p PREFIX, --spark, --model MODEL, --permission-mode MODE, --no-web, --brief PATH and --director NAME, not '$1'" ;;
     esac
     shift
   done
   if [ -n "$PREFIX" ] && ! [[ "$PREFIX" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*(\ [A-Za-z0-9_-]+)*$ ]]; then
     die "PREFIX is letters, digits, hyphens and underscores, in words separated by single spaces"
+  fi
+  if [ -n "$UP_DIRECTOR" ] && ! [[ "$UP_DIRECTOR" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*(\ [A-Za-z0-9_-]+)*$ ]]; then
+    die "the director's NAME is written as PREFIX is: letters, digits, hyphens and underscores, in words separated by single spaces"
   fi
   [[ "${MATRIX_UP_WAIT:-600}" =~ ^[0-9]+$ ]] || die "MATRIX_UP_WAIT is a number of seconds"
   if [ -n "$UP_BRIEF" ]; then

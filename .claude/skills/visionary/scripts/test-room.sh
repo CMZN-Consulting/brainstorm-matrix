@@ -137,6 +137,23 @@ seats_run() {
     seat_runs "$SESSION Analyst (L2)" "$2" medium && seat_runs "$SESSION Analyst (R2)" "$2" medium
 }
 
+first_prompt_is() {
+  awk -F '\037' -v n="$SESSION Visionary" -v want="$1" '
+    {
+      for (i = 1; i < NF; i++) {
+        if ($i == "-n" && $(i + 1) == n) {
+          found++
+          got = $(NF - 1)
+        }
+      }
+    }
+    END { exit !(found == 1 && got == want) }' "$TEST_ROOM_LOG"
+}
+
+no_room() {
+  [ "$rc" -ne 0 ] && room_gone
+}
+
 attach_control_client() {
   tmux -S "$SOCK" -f "$WORK/home/.tmux.conf" new-session -d -s keep -x 80 -y 24 "sleep 600"
   mkfifo "$WORK/ctl"
@@ -163,6 +180,22 @@ rc="$(run up -p "$SESSION" --model some-model)"
 holds "--model MODEL builds the room of seven" room_up
 holds "and puts all seven on MODEL, each at its own effort" seats_run some-model some-model
 holds "down stops it" down_stops_it
+
+fresh
+rc="$(run up -p "$SESSION" --director "Senior Worker")"
+holds "--director NAME builds the room of seven" room_up
+holds "and the Visionary's first prompt names NAME as the directing session" first_prompt_is "/visionary The directing session is Senior Worker."
+holds "down stops it" down_stops_it
+
+fresh
+printf '%s\n' "# a brief" >"$WORK/brief.md"
+rc="$(run up -p "$SESSION" --brief "$WORK/brief.md" --director Desk)"
+holds "with --brief PATH as well, the directing session comes after the brief's sentence" first_prompt_is "/visionary The brief is at $WORK/brief.md. The directing session is Desk."
+holds "down stops it" down_stops_it
+
+fresh
+rc="$(run up -p "$SESSION" --director "Desk; rm")"
+holds "a NAME that PREFIX's rule refuses is refused before any session is made" no_room
 
 fresh 'set -g destroy-unattached on'
 rc="$(run up -p "$SESSION")"
