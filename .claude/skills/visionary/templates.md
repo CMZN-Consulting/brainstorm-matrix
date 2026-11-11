@@ -35,7 +35,7 @@ Weather: ONE LINE.
 
 **Deliver.** A short sheet with the front matter of the analyst skill's sheet, with no cards: one paragraph naming your seat, your row and your effort as your session name and this brief give them; a map of what you read, one line a file; then Doubts, Grounds and Coverage, with Not read. Write "none" rather than leave out a section. Box: THE BOX, ending at HH:MMZ; at its end, seal.
 
-**This round.** The allowlist: reading the files above, listing a directory, the clock, and writing your sheet. No helpers.
+**This round.** The allowlist: reading the files above, reading your own pane title, listing a directory inside this folder, the clock, your scratchpad, and writing your sheet. No helpers.
 ```
 
 ## QUESTION.md
